@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Em desenvolvimento · Mercado</title>
+  <link rel="stylesheet" href="css/login.css">
+  <script src="js/auth.js"></script>
+</head>
+<body>
+  <main class="dev-page">
+    <div class="form-top">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">M</span>
+        <span class="brand-name">Mercado</span>
+      </a>
+      <a class="back-link" href="index.html">← Voltar ao site</a>
+    </div>
+
+    <section class="form-card dev-card" aria-labelledby="dev-title">
+      <span class="dev-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>
+      </span>
+      <p class="dev-hello" id="dev-ola">Login feito com sucesso</p>
+      <h1 id="dev-title">Esta área ainda está em desenvolvimento</h1>
+      <p class="subtitle">Estamos construindo o sistema por partes. Em breve, ao entrar, você vai direto para a sua tela de trabalho.</p>
+
+      <ul class="dev-list">
+        <li><span class="dev-dot"></span>Painel com o resumo do dia</li>
+        <li><span class="dev-dot"></span>Estoque e fornecedores</li>
+        <li><span class="dev-dot"></span>Caixa e fechamento do dia</li>
+      </ul>
+
+      <button type="button" class="btn-primary" id="btn-sair">Sair</button>
+    </section>
+
+    <p class="help">Dúvidas? <a href="mailto:contato@mercado.com.br">contato@mercado.com.br</a> · (11) 4000-0000</p>
+  </main>
+
+  <script>
+    (() => {
+      const sessao = Auth.exigirLogin();
+      if (!sessao) return;
+      document.getElementById("dev-ola").textContent = `Olá, ${sessao.nome}! Seu login foi feito com sucesso.`;
+      document.getElementById("btn-sair").addEventListener("click", Auth.logout);
+    })();
+  </script>
+</body>
+</html>
