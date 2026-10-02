@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Caixa · Mercado</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body>
+  <header class="mobile-bar">
+    <a class="brand" href="caixa.html">
+      <span class="brand-mark" aria-hidden="true">M</span><span class="brand-name">Mercado</span>
+    </a>
+    <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </header>
+  <div class="backdrop" id="backdrop" hidden></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1>Caixa</h1>
+          <p>Registro de vendas do dia</p>
+        </div>
+      </div>
+      <section class="card">
+        <h2 class="card-title">Em desenvolvimento</h2>
+        <p style="margin:0;color:var(--muted)">Esta tela será desenvolvida na etapa do Caixa: montagem da venda, pagamento e baixa automática no estoque.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>App.iniciar({ ativo: "caixa", perfis: ["gerente", "operador"] });</script>
+</body>
+</html>

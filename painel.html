@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel · Mercado</title>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/painel.css">
+  <script src="js/auth.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body>
+  <header class="mobile-bar">
+    <a class="brand" href="painel.html">
+      <span class="brand-mark" aria-hidden="true">M</span><span class="brand-name">Mercado</span>
+    </a>
+    <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </header>
+  <div class="backdrop" id="backdrop" hidden></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1 id="saudacao">Olá</h1>
+          <p id="data-turno"></p>
+        </div>
+        <span class="live" title="O painel se atualiza sozinho a cada nova venda ou alteração">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="atualizado">Atualizando…</span>
+        </span>
+      </div>
+
+      <section class="kpis" aria-label="Indicadores do dia">
+        <article class="kpi">
+          <div class="kpi-top">
+            <span class="kpi-label">Vendas hoje</span>
+            <span class="kpi-icon icon-green"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span>
+          </div>
+          <strong class="kpi-value" id="kpi-vendas">—</strong>
+          <span class="kpi-sub" id="kpi-vendas-sub"></span>
+        </article>
+
+        <article class="kpi">
+          <div class="kpi-top">
+            <span class="kpi-label">Estoque baixo</span>
+            <span class="kpi-icon icon-amber"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+          </div>
+          <strong class="kpi-value" id="kpi-estoque">—</strong>
+          <span class="kpi-sub">Abaixo do mínimo cadastrado</span>
+        </article>
+
+        <article class="kpi">
+          <div class="kpi-top">
+            <span class="kpi-label">Pedidos pendentes</span>
+            <span class="kpi-icon icon-blue"><svg viewBox="0 0 24 24"><path d="M1 6h13v10H1zM14 10h4l3 3v3h-7z"/><circle cx="5" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span>
+          </div>
+          <strong class="kpi-value" id="kpi-pedidos">—</strong>
+          <span class="kpi-sub">Aguardando entrega do fornecedor</span>
+        </article>
+
+        <article class="kpi">
+          <div class="kpi-top">
+            <span class="kpi-label">Ticket médio</span>
+            <span class="kpi-icon icon-green"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+          </div>
+          <strong class="kpi-value" id="kpi-ticket">—</strong>
+          <span class="kpi-sub">Nas vendas de hoje</span>
+        </article>
+      </section>
+
+      <div class="grid-2">
+        <section class="card">
+          <h2 class="card-title">Acesso rápido</h2>
+          <div class="shortcuts">
+            <a class="shortcut" href="estoque.html#novo">
+              <span class="shortcut-icon"><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></span>
+              <span><strong>Novo produto</strong><small>Cadastrar no estoque</small></span>
+            </a>
+            <a class="shortcut" href="fornecedores.html#novo" data-tela="Fornecedores">
+              <span class="shortcut-icon"><svg viewBox="0 0 24 24"><path d="M1 6h13v10H1zM14 10h4l3 3v3h-7z"/><circle cx="5" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span>
+              <span><strong>Novo pedido</strong><small>Reposição com fornecedor</small></span>
+            </a>
+            <a class="shortcut" href="caixa.html">
+              <span class="shortcut-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h4M14 13h3M7 16h4M14 16h3"/></svg></span>
+              <span><strong id="atalho-caixa">Abrir caixa</strong><small>Registrar vendas</small></span>
+            </a>
+            <a class="shortcut" href="fechamento.html" data-tela="Fechamento do dia">
+              <span class="shortcut-icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+              <span><strong>Fechar o dia</strong><small>Resumo e conferência</small></span>
+            </a>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Avisos recentes</h2>
+          <ul class="alerts" id="avisos"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/painel.js"></script>
+</body>
+</html>

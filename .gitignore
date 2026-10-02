@@ -1,0 +1,11 @@
+# Arquivo de outro projeto
+acougue-controle*.html
+
+# Configurações locais de editor/ferramentas
+.vscode/
+.claude/
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
