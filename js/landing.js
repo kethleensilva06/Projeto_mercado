@@ -1,19 +1,23 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  // Menu no celular
-  const toggle = $("menu-toggle");
-  const nav = $("nav");
-  toggle.addEventListener("click", () => {
-    const aberto = nav.classList.toggle("open");
-    toggle.setAttribute("aria-expanded", String(aberto));
+  // Janela de contato
+  const dialog = $("contato");
+  const abrirContato = () => {
+    msg.hidden = true;
+    dialog.showModal();
+    $("c-nome").focus();
+  };
+  $("abrir-contato").addEventListener("click", abrirContato);
+  $("abrir-contato-hero").addEventListener("click", abrirContato);
+  $("fechar-contato").addEventListener("click", () => dialog.close());
+  // Fecha ao clicar fora da janela
+  dialog.addEventListener("click", e => {
+    if (e.target !== dialog) return;
+    const r = dialog.getBoundingClientRect();
+    const dentro = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    if (!dentro) dialog.close();
   });
-  nav.querySelectorAll("a").forEach(a =>
-    a.addEventListener("click", () => {
-      nav.classList.remove("open");
-      toggle.setAttribute("aria-expanded", "false");
-    })
-  );
 
   /*
    * Formulário de contato.
