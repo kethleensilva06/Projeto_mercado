@@ -29,8 +29,11 @@ body {
 
 svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-/* Layout em duas colunas */
-.login-layout { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+/* Layout em duas colunas, ocupando exatamente uma tela */
+.login-layout {
+  height: 100vh; height: 100dvh;
+  display: grid; grid-template-columns: 1fr 1fr;
+}
 
 /* ---------- Painel da marca ---------- */
 .brand-panel {
@@ -86,8 +89,10 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 
 /* ---------- Painel do formulário ---------- */
 .form-panel {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 32px 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: safe center;
+  padding: 24px;
+  min-height: 0;
+  overflow-y: auto; /* só rola em telas muito baixas */
 }
 .form-top {
   width: 100%; max-width: 420px;
@@ -103,7 +108,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 36px 32px 28px;
+  padding: 28px 32px 24px;
   box-shadow: 0 12px 32px rgba(20, 40, 28, .07);
 }
 
@@ -202,7 +207,7 @@ label { font-size: 14px; font-weight: 600; }
 .link:hover { text-decoration: underline; }
 .link-back { margin-bottom: 18px; }
 
-.profiles { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.profiles { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
 .profiles-title { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .profile-list { display: grid; gap: 10px; }
 .profile { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
@@ -212,9 +217,31 @@ label { font-size: 14px; font-weight: 600; }
 .dot-green { background: var(--green-600); }
 .dot-blue { background: var(--blue-600); }
 
-.help { max-width: 420px; margin: 20px 0 0; text-align: center; font-size: 13px; color: var(--muted); }
+.help { max-width: 420px; margin: 16px 0 0; text-align: center; font-size: 13px; color: var(--muted); }
 .help a { color: var(--green-700); font-weight: 600; text-decoration: none; }
 .help a:hover { text-decoration: underline; }
+
+/* ---------- Tela "em desenvolvimento" (depois do login) ---------- */
+.dev-page {
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; align-items: center; justify-content: safe center;
+  padding: 24px 16px;
+}
+.dev-page .form-top { justify-content: space-between; }
+.dev-card { text-align: center; }
+.dev-icon {
+  width: 56px; height: 56px; margin: 0 auto 16px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--amber-50); color: var(--amber-700);
+}
+.dev-icon svg { width: 26px; height: 26px; }
+.dev-hello { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--green-700); }
+.dev-list {
+  list-style: none; margin: 0 0 24px; padding: 14px 16px;
+  display: grid; gap: 8px; text-align: left;
+  background: var(--bg); border-radius: 10px; font-size: 14px;
+}
+.dev-list li { display: flex; align-items: center; gap: 10px; }
+.dev-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--amber-700); }
 
 /* ---------- Responsivo ---------- */
 @media (max-width: 960px) {
@@ -225,7 +252,29 @@ label { font-size: 14px; font-weight: 600; }
 }
 
 @media (max-width: 440px) {
-  .form-panel { padding: 20px 16px; justify-content: flex-start; }
-  .form-card { padding: 28px 20px 22px; }
+  .form-panel { padding: 16px; }
+  .form-card { padding: 22px 20px 20px; }
   h1 { font-size: 23px; }
+  .subtitle { margin-bottom: 18px; }
+}
+
+/* Telas baixas: tira o que é secundário para caber sem rolagem */
+@media (max-height: 820px) {
+  .brand-panel { padding: 32px 48px; }
+  .brand-content > p { margin-bottom: 22px; }
+  .benefits { gap: 12px; margin-bottom: 22px; }
+  .form-top { margin-bottom: 14px; }
+  .badge-secure { margin-bottom: 12px; }
+  .subtitle { margin-bottom: 18px; }
+  .field { margin-bottom: 14px; }
+  .form-row { margin-bottom: 18px; }
+}
+
+@media (max-height: 720px) {
+  .mini-dashboard { display: none; }
+  .profiles { display: none; }
+}
+
+@media (max-height: 600px) {
+  .badge-secure, .help { display: none; }
 }
