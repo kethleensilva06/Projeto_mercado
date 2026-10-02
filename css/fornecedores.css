@@ -1,0 +1,69 @@
+/* Específico da tela de fornecedores (o restante está em componentes.css) */
+.head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Status do fornecedor */
+.status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.status-em-dia { background: var(--green-50); color: var(--green-700); }
+.status-pendente { background: var(--amber-50); color: var(--amber-700); }
+.status-atrasado { background: var(--red-50); color: var(--red-600); }
+.status-sem-pedidos { background: var(--bg); color: var(--muted); }
+
+.forn-name { font-weight: 600; display: block; }
+.forn-email { font-size: 13px; color: var(--muted); }
+.tel { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+/* Sugestões de reposição */
+.suggestions { display: grid; gap: 12px; margin-bottom: 20px; }
+.suggestions:empty { display: none; }
+.suggestion {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 16px 20px;
+  background: var(--amber-50); border: 1px solid #f0dca8; border-radius: var(--radius);
+}
+.suggestion-icon {
+  width: 40px; height: 40px; flex: none; display: grid; place-items: center;
+  border-radius: 10px; background: #fff; color: var(--amber-700);
+}
+.suggestion-icon svg { width: 20px; height: 20px; }
+.suggestion-text { flex: 1; min-width: 220px; }
+.suggestion-text small { display: block; font-size: 12px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: var(--amber-700); }
+.suggestion-text p { margin: 2px 0 0; font-size: 15px; }
+.suggestion-actions { display: flex; gap: 8px; }
+.suggestion .btn { height: 38px; padding: 0 14px; font-size: 14px; }
+
+/* Histórico de pedidos (linha aberta) */
+.history { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 14px; }
+.history th { text-align: left; padding: 8px 12px; font-size: 12px; font-weight: 600; color: var(--muted); background: #fafbfa; border-bottom: 1px solid var(--line); }
+.history td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.history tr:last-child td { border-bottom: 0; }
+.history-title { margin: 0 0 10px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.history .link-btn { height: 30px; font-size: 12px; }
+.history-empty { margin: 0; color: var(--muted); font-size: 14px; }
+
+.optional { font-weight: 400; color: var(--muted); }
+
+@media (max-width: 760px) {
+  .head-actions { width: 100%; }
+  .head-actions { flex-direction: column-reverse; }
+  .head-actions .btn { width: 100%; white-space: nowrap; }
+  .table td.c-nome { grid-column: 1; }
+  .table td.c-status { grid-column: 2; grid-row: 1; justify-self: end; }
+  .table td.c-tel, .table td.c-prod, .table td.c-ult { grid-column: 1 / -1; font-size: 14px; color: var(--muted); }
+  .table td.c-ult::before { content: "Último pedido: "; }
+  .suggestion-actions { width: 100%; }
+  .suggestion-actions .btn { flex: 1; }
+  /* Histórico vira lista no celular */
+  .history thead { display: none; }
+  .history, .history tbody, .history tr, .history td { display: block; width: 100%; }
+  .history tr { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .history td { padding: 2px 0; border: 0; }
+}
+
+.history td { background: #fff; }
+.details .actions .link-btn { height: auto; min-height: 32px; padding: 6px 12px; text-align: left; }

@@ -17,7 +17,7 @@ const App = (() => {
   const MENU = [
     { id: "painel", nome: "Painel", href: "painel.html", pronto: true, perfis: ["gerente"] },
     { id: "estoque", nome: "Estoque", href: "estoque.html", pronto: true, perfis: ["gerente"] },
-    { id: "fornecedores", nome: "Fornecedores", href: "fornecedores.html", pronto: false, perfis: ["gerente"] },
+    { id: "fornecedores", nome: "Fornecedores", href: "fornecedores.html", pronto: true, perfis: ["gerente"] },
     { id: "caixa", nome: "Caixa", href: "caixa.html", pronto: true, perfis: ["gerente", "operador"] },
     { id: "fechamento", nome: "Fechamento do dia", href: "fechamento.html", pronto: false, perfis: ["gerente", "operador"] },
   ];
@@ -91,6 +91,8 @@ const App = (() => {
   }
 
   const moeda = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const dataBR = iso => iso ? new Date(iso + "T12:00").toLocaleDateString("pt-BR") : "—";
 
-  return { iniciar, toast, emBreve, svg, moeda, MENU };
+  return { iniciar, toast, emBreve, svg, moeda, esc, dataBR, MENU };
 })();

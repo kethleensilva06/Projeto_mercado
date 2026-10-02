@@ -11,7 +11,7 @@ Feito em HTML, CSS e JavaScript puros, sem dependências.
 | Login | `login.html` | Pronta |
 | Painel | `painel.html` | Pronta |
 | Estoque | `estoque.html` | Pronta |
-| Fornecedores | — | A fazer |
+| Fornecedores | `fornecedores.html` | Pronta |
 | Caixa | `caixa.html` | Página provisória |
 | Fechamento do dia | — | A fazer |
 
@@ -28,10 +28,10 @@ Depois acesse http://localhost:5500. Os usuários de teste estão em [USUARIOS_T
 ## Estrutura
 
 ```
-index.html, login.html, painel.html, estoque.html, caixa.html
-css/      estilos (app.css = estrutura comum das telas internas)
+index.html, login.html, painel.html, estoque.html, fornecedores.html, caixa.html
+css/      estilos (app.css = estrutura das telas internas, componentes.css = tabela, botões, janelas)
 js/       auth.js   login simulado, perfis, bloqueio e auditoria
-          dados.js  base de dados simulada (produtos, pedidos, vendas, caixa)
+          dados.js  base de dados simulada (produtos, fornecedores, pedidos, vendas, caixa)
           app.js    menu lateral, usuário logado e avisos comuns
 figma/    telas exportadas em SVG (as mesmas do arquivo do Figma)
 ```

@@ -62,7 +62,9 @@
     }));
     pendentes.forEach(p => avisos.push({
       tipo: "pedido",
-      texto: `Pedido para <strong>${esc(p.fornecedor)}</strong> ainda não foi entregue.`,
+      texto: Dados.pedidoAtrasado(p)
+        ? `Pedido para <strong>${esc(p.fornecedor)}</strong> está atrasado (previsto para ${App.dataBR(p.previsao)}).`
+        : `Pedido para <strong>${esc(p.fornecedor)}</strong> ainda não foi entregue.`,
       quando: "Pedido de " + new Date(p.data + "T12:00").toLocaleDateString("pt-BR"),
     }));
     if (d.caixa.aberto) {
