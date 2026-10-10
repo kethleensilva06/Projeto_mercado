@@ -36,6 +36,12 @@ js/       auth.js   login simulado, perfis, bloqueio e auditoria
 figma/    telas exportadas em SVG (as mesmas do arquivo do Figma)
 ```
 
+## Programa para Windows (`app-windows/`)
+
+Versão do sistema como programa para Windows (C# .NET 10 + WPF, com banco no Supabase), feita por
+Guilherme Guerhart a partir das telas deste site. Veio da branch `app` com o histórico de commits preservado.
+Como preparar e rodar: [app-windows/README.md](app-windows/README.md).
+
 ## Observações
 
 - Ainda não há back-end: o login (`js/auth.js`) e os dados (`js/dados.js`) são simulados e ficam
