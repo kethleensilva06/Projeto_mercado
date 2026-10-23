@@ -127,24 +127,36 @@
       const status = situacaoDe(d, f);
       const ultimo = ultimoPedido(d, f);
       const produtos = produtosDe(d, f).sort((a, b) => urgencia(a) - urgencia(b) || R.porNome(a, b));
-      const mostrar = produtos.slice(0, 4).map(p => `<span class="prod-chip">${sinal(d, p)}${esc(p.nome)}</span>`).join("") +
-        (produtos.length > 4 ? `<span class="prod-chip mais">+${produtos.length - 4}</span>` : "");
+      const faltando = produtos.filter(p => emFalta(d, p)).length;
+      const mostrar = produtos.slice(0, 5).map(p => `<span class="prod-chip">${sinal(d, p)}${esc(p.nome)}</span>`).join("") +
+        (produtos.length > 5 ? `<span class="prod-chip mais">+${produtos.length - 5}</span>` : "");
+      const carimbo = f.ativo === false ? ["sem-pedidos", "Desativado"] : [status, STATUS[status]];
       return `
-        <tr class="row${aberto ? " open" : ""}${f.ativo === false ? " desativado" : ""}" data-id="${f.id}">
-          <td class="c-nome">
-            <span class="forn-name">${esc(f.nome)}</span>
-            <span class="forn-email">${f.contato ? "Falar com " + esc(f.contato) : f.email ? esc(f.email) : ""}</span>
-          </td>
-          <td class="c-tel"><span class="tel">${esc(f.telefone)}</span></td>
-          <td class="c-prod">${produtos.length ? `<div class="prod-chips">${mostrar}</div>` : `<span class="muted">${esc(f.produtos)}</span>`}</td>
-          <td class="c-ult">${ultimo ? dataBR(ultimo.data) : '<span class="muted">—</span>'}</td>
-          <td class="c-status">${f.ativo === false ? '<span class="status status-sem-pedidos">Desativado</span>' : `<span class="status status-${status}">${STATUS[status]}</span>`}</td>
-          <td class="col-toggle">
-            <button type="button" class="row-toggle" data-acao="detalhes" aria-expanded="${aberto}"
-                    aria-label="Ver produtos e pedidos de ${esc(f.nome)}">${ICON_CHEVRON}</button>
-          </td>
-        </tr>
-        ${aberto ? `<tr class="details" data-id="${f.id}"><td colspan="6">${detalhes(d, f, produtos)}</td></tr>` : ""}`;
+        <article class="forn-card${aberto ? " aberto" : ""}${f.ativo === false ? " desativado" : ""}" data-id="${f.id}">
+          <header class="forn-topo">
+            <div class="forn-quem">
+              <h2 class="forn-name">${esc(f.nome)}</h2>
+              <span class="forn-email">${f.contato ? "Falar com " + esc(f.contato) : f.email ? esc(f.email) : "&nbsp;"}</span>
+            </div>
+            <span class="carimbo carimbo-${carimbo[0]}">${carimbo[1]}</span>
+          </header>
+          <dl class="forn-dados">
+            <div><dt>Telefone</dt><dd class="tel">${esc(f.telefone)}</dd></div>
+            <div><dt>Entrega</dt><dd>${R.prazoFornecedor(f)} ${R.prazoFornecedor(f) === 1 ? "dia" : "dias"}</dd></div>
+            <div><dt>Último pedido</dt><dd>${ultimo ? dataBR(ultimo.data) : "—"}</dd></div>
+          </dl>
+          <div class="forn-produtos">
+            <span class="forn-rotulo">Entrega: ${esc(f.produtos || "—")}${faltando ? ` · <strong class="falta">${faltando} em falta</strong>` : ""}</span>
+            ${produtos.length ? `<div class="prod-chips">${mostrar}</div>` : ""}
+          </div>
+          <footer class="forn-pe">
+            <a class="forn-zap" href="${R.linkWhatsapp(f, saudacao(f))}" target="_blank" rel="noopener" aria-label="Conversar com ${esc(f.nome)} no WhatsApp">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp</a>
+            <button type="button" class="forn-mais" data-acao="detalhes" aria-expanded="${aberto}" aria-controls="det-${f.id}">
+              ${aberto ? "Fechar" : "Pedidos e detalhes"} ${ICON_CHEVRON}</button>
+          </footer>
+          ${aberto ? `<section class="forn-detalhes" id="det-${f.id}" aria-label="Detalhes de ${esc(f.nome)}">${detalhes(d, f, produtos)}</section>` : ""}
+        </article>`;
     }).join("");
   }
 
@@ -155,64 +167,66 @@
     return `
       <div class="actions acoes-forn">
         ${desativado ? "" : `
-        <button type="button" class="link-btn" data-acao="falta"${falta.length ? "" : " disabled"}>Pedir o que falta${falta.length ? ` (${falta.length})` : ""}</button>
-        <button type="button" class="link-btn" data-acao="pedir">+ Novo pedido</button>`}
+        <button type="button" class="btn btn-primary" data-acao="falta"${falta.length ? "" : " disabled"}>Pedir o que falta${falta.length ? ` (${falta.length})` : ""}</button>
+        <button type="button" class="btn btn-ghost" data-acao="pedir">+ Novo pedido</button>`}
         <button type="button" class="link-btn" data-acao="editar">Editar</button>
         ${desativado
           ? '<button type="button" class="link-btn" data-acao="reativar">Reativar</button>'
           : `<button type="button" class="link-btn danger" data-acao="excluir">${historico.length ? "Desativar" : "Excluir"}</button>`}
       </div>
-      <div class="details-grid">
-        <div class="detail"><small>Telefone</small><strong>${esc(f.telefone)}</strong></div>
-        <div class="detail"><small>WhatsApp</small><strong>${esc(f.whatsapp || f.telefone)}</strong></div>
-        <div class="detail"><small>E-mail</small><strong>${f.email ? esc(f.email) : "—"}</strong></div>
-        <div class="detail"><small>Entrega</small><strong>${R.prazoFornecedor(f)} dias · pedidos por ${f.envio === "email" ? "e-mail" : "WhatsApp"}</strong></div>
-        ${f.observacao ? `<div class="detail"><small>Observação</small><strong>${esc(f.observacao)}</strong></div>` : ""}
+      <div class="forn-colunas">
+        <div>
+          <p class="history-title">Contato</p>
+          <ul class="contato-lista">
+            <li><span>WhatsApp</span><strong>${esc(f.whatsapp || f.telefone)}</strong></li>
+            <li><span>E-mail</span><strong>${f.email ? esc(f.email) : "—"}</strong></li>
+            <li><span>Pedidos por</span><strong>${f.envio === "email" ? "e-mail" : "WhatsApp"}</strong></li>
+            ${f.observacao ? `<li class="obs">“${esc(f.observacao)}”</li>` : ""}
+          </ul>
+          <div class="contato-rapido">
+            ${f.email ? `<a class="link-btn" href="${R.linkEmail(f, "Mercado", saudacao(f))}">Mandar e-mail</a>` : ""}
+            <button type="button" class="link-btn" data-acao="copiar">Copiar telefone</button>
+          </div>
+        </div>
+        <div>
+          <p class="history-title">Produtos (${produtos.length})</p>
+          ${produtos.length ? `<ul class="prod-lista">${produtos.map(p => `
+            <li class="prod-item">${sinal(d, p)}<strong>${esc(p.nome)}</strong>
+              <small>${R.formatar(R.qtd(p), R.porPeso(p))} · mín. ${R.numero(p.minimo, R.porPeso(p))}${R.jaPedido(d, p) ? " · já pedido" : ""}</small></li>`).join("")}</ul>`
+            : '<p class="history-empty">Nenhum produto ligado. Cadastre a categoria em “O que entrega” ou escolha este fornecedor no cadastro do produto.</p>'}
+        </div>
       </div>
-      <div class="contato-rapido">
-        <span>Contato rápido:</span>
-        <a class="link-btn" href="${R.linkWhatsapp(f, saudacao(f))}" target="_blank" rel="noopener">WhatsApp</a>
-        ${f.email ? `<a class="link-btn" href="${R.linkEmail(f, "Mercado", saudacao(f))}">E-mail</a>` : ""}
-        <button type="button" class="link-btn" data-acao="copiar">Copiar telefone</button>
-      </div>
-      <p class="history-title">Produtos (${produtos.length})</p>
-      ${produtos.length ? `<div class="prod-lista">${produtos.map(p => `
-        <span class="prod-item">${sinal(d, p)}<strong>${esc(p.nome)}</strong>
-          <small>${R.formatar(R.qtd(p), R.porPeso(p))} · mín. ${R.numero(p.minimo, R.porPeso(p))}${R.jaPedido(d, p) ? " · já pedido" : ""}</small></span>`).join("")}</div>`
-        : '<p class="history-empty">Nenhum produto ligado. Cadastre a categoria em “O que entrega” ou escolha este fornecedor no cadastro do produto.</p>'}
-      <p class="history-title">Histórico de pedidos</p>
+      <p class="history-title">Pedidos</p>
       ${historico.length ? `
-      <table class="history">
-        <thead><tr><th>Data</th><th>Itens</th><th>Entrega</th><th>Situação</th><th></th></tr></thead>
-        <tbody>
-          ${historico.map(p => {
-            const atrasado = Dados.pedidoAtrasado(p);
-            const sit = p.status === "entregue" ? "em-dia" : p.status === "cancelado" ? "sem-pedidos" : atrasado ? "atrasado" : "pendente";
-            const sitTxt = p.status === "entregue" ? "Entregue" : p.status === "cancelado" ? "Cancelado" : atrasado ? "Atrasado" : "Aguardando";
-            const entrega = p.status === "entregue" ? `Entregue em ${dataBR(p.entregue)}` : p.status === "cancelado" ? "—" : `Previsto para ${dataBR(p.previsao)}`;
-            const diferente = p.status === "entregue" ? p.itens.filter(i => i.recebida !== null && i.recebida !== i.qtd)
-              .map(i => i.recebida === 0 ? `${i.nome} não veio` : `${i.nome}: veio ${qtdCurta(i.recebida, i.unidade)}`) : [];
-            return `<tr data-pedido="${p.id}">
-              <td>${dataBR(p.data)}</td>
-              <td>${esc(descreverItens(p))}${diferente.length ? `<br><small class="diferenca">${esc(diferente.join(" · "))}</small>` : ""}${p.observacao ? `<br><small class="muted">${esc(p.observacao)}</small>` : ""}</td>
-              <td>${entrega}</td>
-              <td><span class="status status-${sit}">${sitTxt}</span></td>
-              <td class="acoes-pedido">${p.status === "pendente" ? `
-                <button type="button" class="link-btn" data-acao="entrega">Registrar entrega</button>
-                <button type="button" class="link-btn" data-acao="reenviar">Reenviar</button>
-                <button type="button" class="link-btn danger" data-acao="cancelar">Cancelar</button>` : ""}</td>
-            </tr>`;
-          }).join("")}
-        </tbody>
-      </table>` : '<p class="history-empty">Nenhum pedido feito para este fornecedor ainda.</p>'}`;
+      <div class="recibos">
+        ${historico.map(p => {
+          const atrasado = Dados.pedidoAtrasado(p);
+          const sit = p.status === "entregue" ? "em-dia" : p.status === "cancelado" ? "sem-pedidos" : atrasado ? "atrasado" : "pendente";
+          const sitTxt = p.status === "entregue" ? "Entregue" : p.status === "cancelado" ? "Cancelado" : atrasado ? "Atrasado" : "Aguardando";
+          const entrega = p.status === "entregue" ? `Entregue em ${dataBR(p.entregue)}` : p.status === "cancelado" ? "Cancelado" : `Chega até ${dataBR(p.previsao)}`;
+          const diferente = p.status === "entregue" ? p.itens.filter(i => i.recebida !== null && i.recebida !== i.qtd)
+            .map(i => i.recebida === 0 ? `${i.nome} não veio` : `${i.nome}: veio ${qtdCurta(i.recebida, i.unidade)}`) : [];
+          return `<div class="recibo" data-pedido="${p.id}">
+            <div class="recibo-topo"><strong>Pedido de ${dataBR(p.data)}</strong><span class="carimbo carimbo-${sit}">${sitTxt}</span></div>
+            <ul class="recibo-itens">${p.itens.map(i => `<li><span>${esc(i.nome)}</span><span>${qtdCurta(i.qtd, i.unidade)}</span></li>`).join("")}</ul>
+            ${diferente.length ? `<p class="diferenca">${esc(diferente.join(" · "))}</p>` : ""}
+            ${p.observacao ? `<p class="muted recibo-obs">${esc(p.observacao)}</p>` : ""}
+            <p class="recibo-entrega">${entrega}</p>
+            ${p.status === "pendente" ? `<div class="acoes-pedido">
+              <button type="button" class="link-btn" data-acao="entrega">Registrar entrega</button>
+              <button type="button" class="link-btn" data-acao="reenviar">Reenviar</button>
+              <button type="button" class="link-btn danger" data-acao="cancelar">Cancelar</button></div>` : ""}
+          </div>`;
+        }).join("")}
+      </div>` : '<p class="history-empty">Nenhum pedido feito para este fornecedor ainda.</p>'}`;
   }
 
   const saudacao = f => `Olá${f.contato ? ", " + f.contato.trim() : ""}! Aqui é ${sessao.nome}, do Mercado.`;
 
   $("lista").addEventListener("click", e => {
     const btn = e.target.closest("button[data-acao]");
-    const linha = e.target.closest("tr.row");
-    if (!btn && linha && !e.target.closest("a")) return alternar(Number(linha.dataset.id));
+    const topo = e.target.closest(".forn-topo, .forn-dados");
+    if (!btn && topo && !e.target.closest("a")) return alternar(Number(topo.closest("[data-id]").dataset.id));
     if (!btn) return;
     const id = Number(btn.closest("[data-id]").dataset.id);
     const pedidoId = btn.closest("[data-pedido]") ? Number(btn.closest("[data-pedido]").dataset.pedido) : null;
@@ -235,7 +249,7 @@
   function alternar(id) {
     abertos.has(id) ? abertos.delete(id) : abertos.add(id);
     render();
-    const b = document.querySelector(`tr.row[data-id="${id}"] .row-toggle`);
+    const b = document.querySelector(`.forn-card[data-id="${id}"] .forn-mais`);
     if (b) b.focus();
   }
 

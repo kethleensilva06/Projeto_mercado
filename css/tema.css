@@ -319,6 +319,86 @@ input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="
 .diferenca { color: var(--amber-700); font-weight: 600; }
 .table tr.row.desativado td { background: repeating-linear-gradient(135deg, transparent 0 10px, rgba(36, 33, 28, .03) 10px 20px); }
 
+/* Lista de fornecedores em cartões de visita */
+.forn-toolbar { padding: 0 0 16px; border-bottom: 2px solid var(--tinta); margin-bottom: 18px; }
+.forn-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; align-items: start; }
+.forn-card {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--cartao); border: 1px solid var(--linha); border-radius: 4px;
+  box-shadow: 4px 4px 0 rgba(36, 33, 28, .1);
+  border-top: 6px solid var(--toldo);
+}
+.forn-card.aberto { grid-column: 1 / -1; box-shadow: 4px 4px 0 rgba(36, 33, 28, .16); }
+.forn-card.desativado { border-top-color: var(--linha-forte); background: repeating-linear-gradient(135deg, var(--cartao) 0 12px, #f7f1e4 12px 24px); }
+.forn-card.desativado .forn-name { color: var(--suave); }
+.forn-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 18px 10px; cursor: pointer; }
+.forn-quem { min-width: 0; }
+.forn-topo .forn-name { margin: 0; font-size: 20px; line-height: 1.15; }
+.forn-topo .forn-email { display: block; margin-top: 2px; font-size: 14px; }
+.carimbo {
+  flex: none; padding: 3px 9px; border: 2px solid currentColor; border-radius: 3px;
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+  transform: rotate(-4deg); white-space: nowrap;
+}
+.carimbo-em-dia { color: var(--toldo); }
+.carimbo-pendente { color: var(--amber-700); }
+.carimbo-atrasado { color: var(--tomate); background: var(--red-50); }
+.carimbo-sem-pedidos { color: var(--suave); border-style: dashed; }
+.forn-dados { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 4px 16px; margin: 0; padding: 0 18px 12px; cursor: pointer; }
+.forn-dados dt { font-size: 11px; font-weight: 700; color: var(--suave); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.forn-dados dd { margin: 0; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.forn-produtos { padding: 10px 18px 14px; border-top: 1px dashed var(--linha-forte); flex: 1; }
+.forn-rotulo { display: block; margin-bottom: 8px; font-size: 13px; color: var(--suave); }
+.forn-rotulo .falta { color: var(--tomate); }
+.forn-pe { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 10px 18px; background: var(--papel); border-top: 1px solid var(--linha); }
+.forn-zap { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; color: var(--toldo); font-weight: 700; font-size: 14px; text-decoration: none; }
+.forn-zap svg { width: 18px; height: 18px; }
+.forn-zap:hover { text-decoration: underline; }
+.forn-mais {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px;
+  border: 1.5px solid var(--linha-forte); border-radius: 4px; background: var(--cartao);
+  font: inherit; font-size: 14px; font-weight: 600; color: var(--tinta); cursor: pointer;
+}
+.forn-mais:hover { border-color: var(--tinta); }
+.forn-mais svg { width: 16px; height: 16px; transition: transform .15s; }
+.forn-mais[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* Detalhes do fornecedor (cartão aberto) */
+.forn-detalhes { padding: 16px 18px 20px; border-top: 2px solid var(--tinta); }
+.forn-detalhes .acoes-forn { margin: 0 0 6px; gap: 8px; }
+.forn-detalhes .acoes-forn .btn { height: 40px; font-size: 14px; }
+.forn-colunas { display: grid; grid-template-columns: minmax(240px, 1fr) 2fr; gap: 8px 32px; }
+.contato-lista { list-style: none; margin: 0 0 10px; padding: 0; }
+.contato-lista li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--linha); font-size: 14px; }
+.contato-lista li span { color: var(--suave); white-space: nowrap; }
+.contato-lista li strong { min-width: 0; text-align: right; overflow-wrap: anywhere; }
+.contato-lista li.obs { display: block; color: var(--suave); font-style: italic; border-bottom: 0; }
+.forn-detalhes .contato-rapido { padding: 0; border: 0; background: none; margin: 0; }
+.prod-lista { list-style: none; margin: 0; padding: 0; }
+.prod-lista .prod-item { padding: 6px 10px; }
+.recibos { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.recibo {
+  padding: 12px 14px 10px; background: #fff; border: 1px solid var(--linha);
+  border-radius: 2px; font-size: 14px;
+  -webkit-mask: radial-gradient(circle 5px at 50% 100%, #0000 98%, #000) 0 0 / 14px 100%;
+          mask: radial-gradient(circle 5px at 50% 100%, #0000 98%, #000) 0 0 / 14px 100%;
+  padding-bottom: 16px;
+}
+.recibo-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.recibo-topo .carimbo { transform: rotate(-3deg); font-size: 10px; }
+.recibo-itens { list-style: none; margin: 0; padding: 6px 0; border-top: 1px dashed var(--linha-forte); border-bottom: 1px dashed var(--linha-forte); }
+.recibo-itens li { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
+.recibo-itens li span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.recibo p { margin: 6px 0 0; font-size: 13px; }
+.recibo-entrega { color: var(--suave); }
+.recibo .acoes-pedido { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; text-align: left; white-space: normal; }
+.recibo .acoes-pedido .link-btn { margin: 0; }
+@media (max-width: 760px) {
+  .forn-grade { grid-template-columns: 1fr; }
+  .forn-colunas { grid-template-columns: 1fr; }
+  .forn-dados { grid-template-columns: repeat(2, auto); }
+}
+
 /* Janela de pedido: itens como lista de compras e a mensagem como um bilhete */
 .item-pedido { border-bottom: 1px dashed var(--linha-forte); }
 .item-nome strong { font-family: var(--fonte-titulo); font-weight: 700; }
