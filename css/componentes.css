@@ -1,4 +1,5 @@
 /* Componentes comuns das telas internas: botões, busca, filtros, tabela, detalhes e janelas */
+[hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Botões */
@@ -167,4 +168,110 @@
 }
 @media (min-width: 761px) {
   .link-btn.details-btn { display: none; }
+}
+
+/* ---------- Semanas 3 a 5: peças usadas no Estoque, Fornecedores e Caixa ---------- */
+:root {
+  --roxo-600: #6b46c1; --roxo-50: #f1ecfb;
+  --ciano-600: #0e7c86; --ciano-50: #e6f4f5;
+  --rosa-600: #b83280; --rosa-50: #fbeaf3;
+  --indigo-600: #4c51bf; --indigo-50: #eceefb;
+  --marrom-600: #8b4a2b; --marrom-50: #f6ede7;
+}
+
+/* Etiqueta de categoria: ícone + nome, cor fixa por categoria */
+.cat {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  padding: 3px 10px 3px 8px; border-radius: 12px;
+  font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cat svg { width: 15px; height: 15px; flex: none; }
+.cat-verde { background: var(--green-50); color: var(--green-700); }
+.cat-azul { background: var(--blue-50); color: var(--blue-600); }
+.cat-ambar { background: var(--amber-50); color: var(--amber-700); }
+.cat-vermelho { background: var(--red-50); color: var(--red-600); }
+.cat-roxo { background: var(--roxo-50); color: var(--roxo-600); }
+.cat-ciano { background: var(--ciano-50); color: var(--ciano-600); }
+.cat-rosa { background: var(--rosa-50); color: var(--rosa-600); }
+.cat-indigo { background: var(--indigo-50); color: var(--indigo-600); }
+.cat-marrom { background: var(--marrom-50); color: var(--marrom-600); }
+
+/* Avisos dentro das telas e das janelas */
+.aviso { margin: 0 0 14px; padding: 10px 14px; border-radius: 8px; border: 1px solid; font-size: 14px; }
+.aviso-ok { background: var(--green-50); border-color: var(--green-100); color: var(--green-700); }
+.aviso-azul { background: var(--blue-50); border-color: #c9dcf2; color: var(--blue-600); }
+.aviso-ambar { background: var(--amber-50); border-color: #f0dca8; color: var(--amber-700); }
+.aviso-erro { background: var(--red-50); border-color: #f2c4be; color: var(--red-600); }
+.link-forte { color: inherit; font-weight: 700; }
+.muted { color: var(--muted); }
+.full { grid-column: 1 / -1; }
+
+/* Janelas maiores e partes de formulário */
+.modal-lg { width: min(720px, calc(100vw - 32px)); }
+.modal-sub { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+.modal-head { align-items: flex-start; }
+.check { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: 14px; font-weight: 500; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--green-600); }
+.dica-bloco { margin: -6px 0 14px; }
+.secao { margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--line); }
+.secao h3 { margin: 0 0 2px; font-size: 16px; }
+.secao .field-hint { display: block; margin-bottom: 12px; }
+.linha-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 16px; }
+.field textarea {
+  min-height: 120px; padding: 10px 12px; resize: vertical;
+  font: inherit; font-size: 15px; color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+}
+.field textarea:focus { outline: none; border-color: var(--green-600); box-shadow: 0 0 0 3px var(--green-50); }
+.optional { font-weight: 400; color: var(--muted); }
+
+/* Indicadores quadrados clicáveis (filtram a lista) */
+.kpis-q { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.kpi-q {
+  width: 140px; min-height: 120px; padding: 12px; text-align: left;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  font: inherit; color: var(--ink); cursor: pointer;
+}
+.kpi-q:hover, .kpi-q.active { border-color: var(--green-600); }
+.kpi-q.active { box-shadow: 0 0 0 3px var(--green-50); }
+.kpi-q:focus-visible { outline: 3px solid var(--green-100); outline-offset: 2px; }
+.kpi-q strong { font-size: 24px; margin-top: 6px; }
+.kpi-q span:last-child { font-size: 13px; font-weight: 600; color: var(--muted); }
+.kpi-q-icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; }
+.kpi-q-icon svg { width: 16px; height: 16px; }
+.icon-green { background: var(--green-50); color: var(--green-700); }
+.icon-amber { background: var(--amber-50); color: var(--amber-700); }
+.icon-red { background: var(--red-50); color: var(--red-600); }
+.icon-blue { background: var(--blue-50); color: var(--blue-600); }
+
+/* Sinais de estoque e validade */
+.dot-low { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--red-600); }
+.sinal-aviso { display: inline-block; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid #d79b00; }
+.alerta-validade { display: inline-grid; place-items: center; vertical-align: middle; }
+.alerta-validade svg { width: 18px; height: 18px; }
+.alerta-validade.vencido { color: var(--red-600); }
+.alerta-validade.atencao { color: #c98a00; }
+
+/* Filtros em uso */
+.contador { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--green-600); color: #fff; font-size: 12px; line-height: 20px; }
+.filtros-ativos { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 20px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.field .search input { padding-left: 38px; }
+.filtros-ativos[hidden], .contador[hidden] { display: none; }
+.etiqueta { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 10px; border-radius: 999px; background: var(--green-50); color: var(--green-700); font-weight: 600; }
+.etiqueta button { width: 22px; height: 22px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 16px; cursor: pointer; }
+.etiqueta button:hover { background: #fff; }
+.mostrando { color: var(--muted); }
+.link-simples { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--green-700); cursor: pointer; }
+.link-simples:hover { text-decoration: underline; }
+
+/* Janela de filtros */
+.filtros-corpo { display: block; }
+.grupo { border: 0; margin: 0 0 16px; padding: 0; }
+.grupo legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+.opcoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+@media (max-width: 760px) {
+  .linha-3 { grid-template-columns: 1fr; }
+  .kpi-q { width: calc(50% - 6px); min-height: 0; }
+  .filtros-ativos { padding: 10px 14px; }
 }

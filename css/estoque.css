@@ -1,15 +1,36 @@
 /* Específico da tela de estoque (o restante está em componentes.css) */
 .prod-name { font-weight: 600; }
-.qty { display: inline-flex; align-items: center; gap: 6px; }
+.qty { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .qty.low { color: var(--red-600); font-weight: 700; }
-.dot-low { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--red-600); }
+.col-alerta, .c-alerta { width: 40px; text-align: center; }
+.table .col-toggle { width: 52px; padding-left: 0 !important; padding-right: 16px !important; }
+.table tr.row { cursor: pointer; }
+.legend { gap: 20px; flex-wrap: wrap; }
+.legend > span { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Leitor de código de barras */
+.leitor { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; padding: 18px 22px; }
+.leitor-icon { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 10px; background: var(--green-50); color: var(--green-700); }
+.leitor-icon svg { width: 22px; height: 22px; }
+.leitor-texto { flex: 1; min-width: 220px; display: flex; flex-direction: column; }
+.leitor-texto span { font-size: 14px; color: var(--muted); }
+.leitor-campo { max-width: 360px; }
+
+/* Drop-down do produto */
+.acoes-produto { justify-content: flex-start; flex-wrap: wrap; margin: 14px 0 16px; }
+.lotes .barra { display: inline-block; width: 56px; height: 6px; margin-right: 8px; border-radius: 3px; background: var(--bg); vertical-align: middle; overflow: hidden; }
+.lotes .barra span { display: block; height: 100%; background: var(--green-600); }
+.lotes tr.esgotado td { color: var(--muted); }
+.acoes-lote { text-align: right; white-space: nowrap; }
+.details .aviso { margin: 12px 0 0; }
 
 @media (max-width: 760px) {
   .table tr.row { grid-template-columns: 1fr auto auto; }
-  .table td.c-nome { grid-column: 1 / -1; }
-  .table td.c-cat { color: var(--muted); font-size: 14px; }
+  .table td.c-nome { grid-column: 1 / 3; }
+  .table td.col-toggle { display: block; grid-column: 3; grid-row: 1; }
+  .table td.c-alerta { grid-column: 3; grid-row: 2; }
   .table td.num { text-align: left; }
-  .table td.c-qtd { white-space: nowrap; }
-  .table td.c-qtd::before { content: "Qtd: "; color: var(--muted); font-weight: 400; }
   .table td.c-preco { text-align: right; font-weight: 600; white-space: nowrap; }
+  .leitor-campo { max-width: none; flex-basis: 100%; }
+  .acoes-lote { text-align: left; }
 }

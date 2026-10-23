@@ -10,6 +10,7 @@
   <script src="js/auth.js"></script>
   <script src="js/dados.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/regras.js"></script>
 </head>
 <body>
   <header class="mobile-bar">
@@ -35,29 +36,69 @@
         </button>
       </div>
 
+      <!-- Entrada de mercadoria pelo leitor de código de barras -->
+      <section class="card leitor">
+        <span class="leitor-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>
+        </span>
+        <div class="leitor-texto">
+          <strong>Chegou mercadoria?</strong>
+          <span>Passe o leitor no código de barras da caixa para dar entrada no lote.</span>
+        </div>
+        <label class="search leitor-campo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>
+          <span class="sr-only">Código de barras da caixa</span>
+          <input id="leitor" maxlength="40" inputmode="numeric" placeholder="Código de barras da caixa" autocomplete="off">
+        </label>
+      </section>
+
+      <!-- Indicadores: clicar filtra a lista -->
+      <section class="kpis-q" aria-label="Indicadores do estoque">
+        <button type="button" class="kpi-q" data-situacao="" title="Cadastrados no estoque">
+          <span class="kpi-q-icon icon-green"><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></span>
+          <strong id="k-total">—</strong><span>Produtos</span>
+        </button>
+        <button type="button" class="kpi-q" data-situacao="baixo" title="Abaixo do mínimo cadastrado">
+          <span class="kpi-q-icon icon-amber"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2"/></svg></span>
+          <strong id="k-baixo">—</strong><span>Estoque baixo</span>
+        </button>
+        <button type="button" class="kpi-q" data-situacao="sem" title="Nenhuma unidade disponível">
+          <span class="kpi-q-icon icon-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 17h.01"/></svg></span>
+          <strong id="k-sem">—</strong><span>Sem estoque</span>
+        </button>
+        <button type="button" class="kpi-q" data-situacao="validade" title="Ainda não venceu, mas vence em até 30 dias">
+          <span class="kpi-q-icon icon-amber"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+          <strong id="k-validade">—</strong><span>Validade próxima</span>
+        </button>
+        <button type="button" class="kpi-q" data-situacao="vencidos" title="Tem lote com a validade já passada">
+          <span class="kpi-q-icon icon-red"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+          <strong id="k-vencidos">—</strong><span>Vencidos</span>
+        </button>
+      </section>
+
       <section class="card table-card">
         <div class="toolbar">
           <label class="search">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
             <span class="sr-only">Buscar produto</span>
-            <input type="search" id="busca" placeholder="Buscar produto ou categoria..." autocomplete="off">
+            <input type="search" id="busca" placeholder="Buscar produto, categoria ou código..." autocomplete="off">
           </label>
-          <div class="chips" role="group" aria-label="Filtrar produtos">
-            <button type="button" class="chip active" data-filtro="todos">Todos <span id="c-todos"></span></button>
-            <button type="button" class="chip" data-filtro="baixo">Estoque baixo <span id="c-baixo"></span></button>
-            <button type="button" class="chip" data-filtro="validade">Validade próxima <span id="c-validade"></span></button>
-          </div>
+          <button type="button" class="btn btn-ghost" id="btn-filtros">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+            Filtros <span class="contador" id="n-filtros" hidden></span>
+          </button>
         </div>
+        <div class="filtros-ativos" id="filtros-ativos" hidden></div>
 
         <table class="table">
           <thead>
             <tr>
-              <th scope="col" class="col-toggle"><span class="sr-only">Detalhes</span></th>
               <th scope="col">Produto</th>
               <th scope="col">Categoria</th>
               <th scope="col" class="num">Qtd</th>
               <th scope="col" class="num">Preço</th>
-              <th scope="col" class="actions-col">Ações</th>
+              <th scope="col" class="col-alerta"><span class="sr-only">Validade</span></th>
+              <th scope="col" class="col-toggle"><span class="sr-only">Detalhes</span></th>
             </tr>
           </thead>
           <tbody id="lista"></tbody>
@@ -65,15 +106,38 @@
         <p class="empty" id="vazio" hidden>Nenhum produto encontrado.</p>
 
         <p class="legend">
-          <span class="dot-low" aria-hidden="true"></span> indica estoque abaixo do mínimo cadastrado
+          <span><span class="dot-low" aria-hidden="true"></span> estoque abaixo do mínimo ou zerado</span>
+          <span><span class="sinal-aviso" aria-hidden="true"></span> aviso antecipado: chegando no mínimo, hora de pedir</span>
         </p>
       </section>
     </main>
   </div>
 
-  <!-- Cadastro / edição -->
-  <dialog class="modal" id="modal-produto" aria-labelledby="modal-titulo">
-    <form method="dialog" id="form-produto" novalidate>
+  <!-- Filtros -->
+  <dialog class="modal" id="modal-filtros" aria-labelledby="filtros-titulo">
+    <form id="form-filtros" novalidate>
+      <header class="modal-head">
+        <h2 id="filtros-titulo">Filtros</h2>
+        <button type="button" class="icon-btn" data-fechar aria-label="Fechar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </header>
+      <div class="modal-body filtros-corpo">
+        <fieldset class="grupo"><legend>Situação</legend><div class="opcoes" id="op-situacao"></div></fieldset>
+        <fieldset class="grupo"><legend>Categoria</legend><div class="opcoes" id="op-categoria"></div></fieldset>
+        <fieldset class="grupo"><legend>Tipo</legend><div class="opcoes" id="op-tipo"></div></fieldset>
+        <fieldset class="grupo"><legend>Ordem</legend><div class="opcoes" id="op-ordem"></div></fieldset>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn btn-ghost" id="filtros-limpar">Limpar</button>
+        <button type="submit" class="btn btn-primary" id="filtros-mostrar">Mostrar produtos</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Cadastro / edição de produto -->
+  <dialog class="modal modal-lg" id="modal-produto" aria-labelledby="modal-titulo">
+    <form id="form-produto" novalidate>
       <header class="modal-head">
         <h2 id="modal-titulo">Novo produto</h2>
         <button type="button" class="icon-btn" data-fechar aria-label="Fechar">
@@ -82,48 +146,142 @@
       </header>
 
       <div class="modal-body">
+        <p class="aviso aviso-ok full" id="f-achado" hidden></p>
         <div class="field full">
           <label for="f-nome">Nome do produto</label>
-          <input id="f-nome" required maxlength="80" placeholder="ex: Arroz 5kg">
+          <input id="f-nome" maxlength="80" placeholder="ex: Arroz 5kg">
           <span class="field-error" id="f-nome-error"></span>
         </div>
         <div class="field full">
           <label for="f-categoria">Categoria</label>
-          <input id="f-categoria" list="categorias" required maxlength="40" placeholder="ex: Grãos">
+          <input id="f-categoria" list="categorias" maxlength="40" placeholder="ex: Grãos">
           <datalist id="categorias"></datalist>
           <span class="field-error" id="f-categoria-error"></span>
         </div>
         <div class="field">
-          <label for="f-qtd">Quantidade</label>
-          <input id="f-qtd" type="number" min="0" step="1" inputmode="numeric" required>
-          <span class="field-error" id="f-qtd-error"></span>
+          <label for="f-fornecedor">Fornecedor <span class="optional">(opcional)</span></label>
+          <select id="f-fornecedor"></select>
+          <span class="field-error" id="f-fornecedor-error"></span>
+        </div>
+        <div class="field">
+          <label for="f-prazo">Prazo de entrega (dias)</label>
+          <input id="f-prazo" inputmode="numeric" maxlength="3">
+          <span class="field-error" id="f-prazo-error"></span>
+        </div>
+        <p class="field-hint full dica-bloco">Sem fornecedor escolhido, o produto é de quem entrega a categoria dele. Prazo: quantos dias o fornecedor leva para entregar este produto (vazio = prazo padrão do fornecedor). Entra na previsão de entrega do pedido.</p>
+        <label class="check full"><input type="checkbox" id="f-kg"> Vendido por quilo (kg), ex.: carnes do açougue</label>
+        <div class="field">
+          <label for="f-preco" id="f-preco-rotulo">Preço (R$)</label>
+          <input id="f-preco" inputmode="decimal" placeholder="0,00">
+          <span class="field-error" id="f-preco-error"></span>
         </div>
         <div class="field">
           <label for="f-minimo">Estoque mínimo</label>
-          <input id="f-minimo" type="number" min="0" step="1" inputmode="numeric" required>
+          <input id="f-minimo" inputmode="decimal">
           <span class="field-error" id="f-minimo-error"></span>
         </div>
         <div class="field">
-          <label for="f-preco">Preço (R$)</label>
-          <input id="f-preco" inputmode="decimal" required placeholder="0,00">
-          <span class="field-error" id="f-preco-error"></span>
-        </div>
-        <div class="field"></div>
-        <div class="field">
-          <label for="f-compra">Data de compra</label>
-          <input id="f-compra" type="date">
-          <span class="field-error" id="f-compra-error"></span>
+          <label for="f-aviso">Avisar com antecedência em</label>
+          <input id="f-aviso" inputmode="decimal" placeholder="mínimo + 50%">
+          <span class="field-error" id="f-aviso-error"></span>
         </div>
         <div class="field">
-          <label for="f-validade">Validade</label>
-          <input id="f-validade" type="date">
-          <span class="field-error" id="f-validade-error"></span>
+          <label for="f-dias">Validade padrão (dias)</label>
+          <input id="f-dias" inputmode="numeric" maxlength="4">
+          <span class="field-error" id="f-dias-error"></span>
+        </div>
+        <p class="field-hint full dica-bloco">Aviso: com essa quantidade ou menos aparece o sinal amarelo, antes de chegar no mínimo (vazio = mínimo + 50%). Validade padrão: quantos dias depois da compra o produto vence (ex.: leite 120, carne 10); a validade dos lotes novos já vem preenchida.</p>
+        <label class="check full"><input type="checkbox" id="f-pedir"> Pedir antes de acabar (calcular o aviso pelo prazo de entrega)</label>
+        <div class="field">
+          <label for="f-codigo">Código de barras da caixa</label>
+          <input id="f-codigo" inputmode="numeric" maxlength="40">
+          <span class="field-error" id="f-codigo-error"></span>
+        </div>
+        <div class="field">
+          <label for="f-porcaixa" id="f-porcaixa-rotulo">Unidades por caixa</label>
+          <input id="f-porcaixa" inputmode="decimal" value="1">
+          <span class="field-error" id="f-porcaixa-error"></span>
+        </div>
+
+        <div class="full secao" id="secao-lote">
+          <h3>Primeiro lote</h3>
+          <p class="field-hint">Deixe a quantidade em 0 se a mercadoria ainda não chegou.</p>
+          <div class="linha-3">
+            <div class="field">
+              <label for="f-qtd">Quantidade</label>
+              <input id="f-qtd" inputmode="decimal" value="0">
+              <span class="field-error" id="f-qtd-error"></span>
+            </div>
+            <div class="field">
+              <label for="f-compra">Data de compra</label>
+              <input id="f-compra" type="date">
+              <span class="field-error" id="f-compra-error"></span>
+            </div>
+            <div class="field">
+              <label for="f-validade">Validade</label>
+              <input id="f-validade" type="date">
+              <span class="field-hint" id="f-validade-dica"></span>
+              <span class="field-error" id="f-validade-error"></span>
+            </div>
+          </div>
         </div>
       </div>
 
       <footer class="modal-foot">
         <button type="button" class="btn btn-ghost" data-fechar>Cancelar</button>
-        <button type="submit" class="btn btn-primary" id="btn-salvar">Salvar produto</button>
+        <button type="submit" class="btn btn-primary" id="btn-salvar">Cadastrar produto</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Novo lote / editar lote -->
+  <dialog class="modal" id="modal-lote" aria-labelledby="lote-titulo">
+    <form id="form-lote" novalidate>
+      <header class="modal-head">
+        <div>
+          <h2 id="lote-titulo">Novo lote</h2>
+          <p class="modal-sub" id="lote-produto"></p>
+        </div>
+        <button type="button" class="icon-btn" data-fechar aria-label="Fechar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <div class="aviso aviso-azul full" id="lote-pedido" hidden>
+          <span id="lote-pedido-texto"></span>
+          <a class="link-forte" id="lote-pedido-link" href="#">Registrar a entrega do pedido</a>
+        </div>
+        <div class="field" id="campo-caixas">
+          <label for="l-caixas">Caixas recebidas</label>
+          <input id="l-caixas" inputmode="numeric" maxlength="4">
+          <span class="field-hint" id="l-caixas-dica"></span>
+          <span class="field-error" id="l-caixas-error"></span>
+        </div>
+        <div class="field">
+          <label for="l-inicial" id="l-inicial-rotulo">Quantidade comprada</label>
+          <input id="l-inicial" inputmode="decimal">
+          <span class="field-error" id="l-inicial-error"></span>
+        </div>
+        <div class="field" id="campo-restante">
+          <label for="l-restante">Quantidade restante</label>
+          <input id="l-restante" inputmode="decimal">
+          <span class="field-error" id="l-restante-error"></span>
+        </div>
+        <div class="field">
+          <label for="l-compra">Data de compra</label>
+          <input id="l-compra" type="date">
+          <span class="field-error" id="l-compra-error"></span>
+        </div>
+        <div class="field">
+          <label for="l-validade">Validade</label>
+          <input id="l-validade" type="date">
+          <span class="field-hint" id="l-validade-dica"></span>
+          <span class="field-error" id="l-validade-error"></span>
+        </div>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn btn-ghost" data-fechar>Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="lote-salvar">Adicionar lote</button>
       </footer>
     </form>
   </dialog>

@@ -7,8 +7,15 @@
     estoque: '<path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/>',
     pedido: '<path d="M1 6h13v10H1zM14 10h4l3 3v3h-7z"/><circle cx="5" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
     caixa: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h4"/>',
+    falta: '<circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 17h.01"/>',
+    validade: '<circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2"/>',
   };
-  const COR = { estoque: "icon-amber", pedido: "icon-blue", caixa: "icon-green" };
+  ICONE.vencido = ICONE.validade;
+  ICONE.atrasado = ICONE.pedido;
+  const COR = {
+    estoque: "icon-amber", pedido: "icon-blue", caixa: "icon-green",
+    falta: "icon-red", vencido: "icon-red", validade: "icon-amber", atrasado: "icon-red",
+  };
 
   function turno(h) {
     if (h < 12) return "turno da manhã";
@@ -27,17 +34,26 @@
 
   function plural(n, um, varios) { return n === 1 ? `${n} ${um}` : `${n} ${varios}`; }
 
+  const R = Regras;
+  const fornecedor = (d, pedido) => (d.fornecedores.find(f => f.id === pedido.fornecedorId) || {}).nome || "fornecedor";
+
   let anterior = null;
   function render() {
     const d = Dados.ler();
-    const total = d.vendas.reduce((s, v) => s + v.total, 0);
-    const qtdVendas = d.vendas.length;
-    const baixos = d.produtos.filter(p => p.qtd < p.minimo);
-    const pendentes = d.pedidos.filter(p => p.status === "pendente");
+    const vendas = d.vendas.filter(v => !v.cancelada);
+    const total = vendas.reduce((s, v) => s + v.total, 0);
+    const qtdVendas = vendas.length;
+    const semEstoque = d.produtos.filter(R.semEstoque).sort(R.porNome);
+    const baixos = d.produtos.filter(R.baixo).sort((a, b) => R.qtd(a) - R.qtd(b) || R.porNome(a, b));
+    const validade = d.produtos.filter(p => R.vencido(p) || R.validadeProxima(p))
+      .sort((a, b) => R.proximaValidade(a).localeCompare(R.proximaValidade(b)));
+    const antecipados = d.produtos.filter(p => R.avisoAntecipado(p, d)).sort(R.porNome);
+    const pendentes = d.pedidos.filter(p => p.status === "pendente")
+      .sort((a, b) => Number(Dados.pedidoAtrasado(b)) - Number(Dados.pedidoAtrasado(a)) || (a.previsao || "").localeCompare(b.previsao || ""));
 
     const valores = {
       "kpi-vendas": App.moeda(total),
-      "kpi-estoque": plural(baixos.length, "produto", "produtos"),
+      "kpi-estoque": plural(baixos.length + semEstoque.length, "produto", "produtos"),
       "kpi-pedidos": plural(pendentes.length, "pedido", "pedidos"),
       "kpi-ticket": App.moeda(qtdVendas ? total / qtdVendas : 0),
     };
@@ -53,18 +69,38 @@
     $("kpi-vendas-sub").textContent = plural(qtdVendas, "venda realizada", "vendas realizadas");
     $("atalho-caixa").textContent = d.caixa.aberto ? "Ir para o caixa" : "Abrir caixa";
 
-    // Avisos: gerados a partir dos dados de estoque, pedidos e caixa
-    const avisos = [];
-    baixos.forEach(p => avisos.push({
+    $("kpi-estoque-sub").textContent = antecipados.length
+      ? `Abaixo do mínimo ou zerados · +${antecipados.length} perto do mínimo`
+      : "Abaixo do mínimo ou zerados";
+    const atrasados = pendentes.filter(Dados.pedidoAtrasado).length;
+    $("kpi-pedidos-sub").textContent = atrasados ? `Aguardando entrega · ${atrasados} com atraso` : "Aguardando entrega do fornecedor";
+
+    // Avisos de estoque (do mais urgente ao menos urgente), no máximo 8 para não esconder o resto
+    const avisosEstoque = [];
+    semEstoque.forEach(p => avisosEstoque.push({ tipo: "falta", texto: `<strong>${esc(p.nome)}</strong> está sem estoque.` }));
+    baixos.forEach(p => avisosEstoque.push({
       tipo: "estoque",
-      texto: `<strong>${esc(p.nome)}</strong> está com estoque baixo (${plural(p.qtd, "unidade", "unidades")}).`,
-      quando: "Estoque",
+      texto: `<strong>${esc(p.nome)}</strong> está com estoque baixo (${R.formatar(R.qtd(p), R.porPeso(p))}, mínimo ${R.numero(p.minimo, R.porPeso(p))}).`,
     }));
+    validade.forEach(p => {
+      const s = R.situacaoProduto(p);
+      avisosEstoque.push(s.nivel === "vencido"
+        ? { tipo: "vencido", texto: `<strong>${esc(p.nome)}</strong>: tem lote vencido (${s.texto.toLowerCase()}).` }
+        : { tipo: "validade", texto: `<strong>${esc(p.nome)}</strong>: lote ${s.texto.toLowerCase()}.` });
+    });
+    antecipados.forEach(p => avisosEstoque.push({
+      tipo: "estoque",
+      texto: `<strong>${esc(p.nome)}</strong> está chegando no mínimo (${R.formatar(R.qtd(p), R.porPeso(p))}). Hora de pedir.`,
+    }));
+    const avisos = avisosEstoque.slice(0, 8).map(a => ({ ...a, quando: "Estoque" }));
+    if (avisosEstoque.length > 8) {
+      avisos.push({ tipo: "caixa", texto: `E mais ${avisosEstoque.length - 8} avisos de estoque. <a href="estoque.html">Abra o Estoque</a> para ver todos.`, quando: "Estoque" });
+    }
     pendentes.forEach(p => avisos.push({
-      tipo: "pedido",
+      tipo: Dados.pedidoAtrasado(p) ? "atrasado" : "pedido",
       texto: Dados.pedidoAtrasado(p)
-        ? `Pedido para <strong>${esc(p.fornecedor)}</strong> está atrasado (previsto para ${App.dataBR(p.previsao)}).`
-        : `Pedido para <strong>${esc(p.fornecedor)}</strong> ainda não foi entregue.`,
+        ? `Pedido para <strong>${esc(fornecedor(d, p))}</strong> está atrasado (previsto para ${App.dataBR(p.previsao)}).`
+        : `Pedido para <strong>${esc(fornecedor(d, p))}</strong> chega até ${App.dataBR(p.previsao)}.`,
       quando: "Pedido de " + new Date(p.data + "T12:00").toLocaleDateString("pt-BR"),
     }));
     if (d.caixa.aberto) {

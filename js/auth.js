@@ -17,12 +17,10 @@ const Auth = (() => {
   ];
 
   // Tela inicial de cada perfil após o login.
-  // Por enquanto só landing e login foram publicados: todos vão para a tela
-  // "em desenvolvimento". Ao publicar as telas internas, volte para
-  // gerente: "painel.html" e operador: "caixa.html".
+  // Depois do login: gerente vai para o Painel e operador para o Caixa.
   const DESTINO_POR_PERFIL = {
-    gerente: "em-desenvolvimento.html",
-    operador: "em-desenvolvimento.html",
+    gerente: "painel.html",
+    operador: "caixa.html",
   };
 
   function registrarTentativa(usuario, sucesso) {
