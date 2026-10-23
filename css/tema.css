@@ -1,0 +1,340 @@
+/*
+ * Tema "mercadinho de bairro": papel, toldo verde listrado, etiqueta amarela de preço e vermelho tomate.
+ * Carregado por último em todas as páginas; troca as cores e o acabamento sem mexer na estrutura das telas.
+ * Contrastes conferidos para WCAG 2.1 AA (texto >= 4.5:1, bordas de campo e ícones de aviso >= 3:1).
+ */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Cores do mercadinho (os nomes antigos continuam valendo para o CSS de cada tela) */
+  --papel: #f5efe3;
+  --cartao: #fffdf8;
+  --tinta: #24211c;
+  --suave: #655d50;
+  --linha: #e2d9c8;
+  --linha-forte: #8e8473;      /* borda de campo: 3.6:1 sobre o cartão */
+  --toldo: #1e5b38;
+  --toldo-escuro: #143f27;
+  --creme: #fbf6ea;
+  --etiqueta: #f6cf3a;
+  --tomate: #b5371c;
+
+  --green-800: #143f27;
+  --green-700: #1e5b38;
+  --green-600: #23703f;
+  --green-100: #c9dcc1;
+  --green-50: #e3eedd;
+  --blue-600: #285a96;
+  --blue-50: #e4ecf6;
+  --amber-700: #7a4d00;
+  --amber-50: #fbefcb;
+  --red-600: #b5371c;
+  --red-50: #fbe3dc;
+  --ink: var(--tinta);
+  --muted: var(--suave);
+  --line: var(--linha);
+  --bg: var(--papel);
+  --card: var(--cartao);
+  --radius: 6px;
+
+  --fonte-titulo: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --fonte-texto: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --foco: 0 0 0 2px var(--cartao), 0 0 0 4px var(--toldo);
+}
+
+body {
+  font-family: var(--fonte-texto);
+  background: var(--papel);
+  color: var(--tinta);
+}
+
+h1, h2, h3, .brand-name, .card-title, .kpi-value, .total, .preview-head {
+  font-family: var(--fonte-titulo);
+  letter-spacing: -.01em;
+}
+h1 { font-weight: 800; }
+
+/* "Pular para o conteúdo": só aparece quando recebe o foco pelo teclado */
+.pular {
+  position: fixed; left: 12px; top: -60px; z-index: 100;
+  padding: 10px 16px; border-radius: 4px;
+  background: var(--etiqueta); color: var(--tinta); font-weight: 700; text-decoration: none;
+  box-shadow: 2px 2px 0 var(--tinta);
+}
+.pular:focus { top: 12px; }
+main:focus { outline: none; }
+
+/* Links de texto com área de toque de pelo menos 36px de altura */
+.nav-link, .link-simples, .link, .back-link, .toggle-pass { min-height: 36px; display: inline-flex; align-items: center; }
+
+/* ---------- Foco visível (o anterior, verde-claro, quase não aparecia) ---------- */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--toldo) !important;
+  outline-offset: 2px !important;
+  box-shadow: none;
+}
+.sidebar :where(a, button):focus-visible, .brand-panel :where(a, button):focus-visible { outline-color: var(--etiqueta) !important; }
+
+/* ---------- Toldo listrado (topo do site, menu e celular) ---------- */
+.topbar, .mobile-bar { position: relative; }
+.topbar::after, .mobile-bar::after, .sidebar::before, .brand-panel::before {
+  content: ""; display: block; height: 18px;
+  background: repeating-linear-gradient(90deg, var(--toldo) 0 22px, var(--creme) 22px 44px);
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% 8px no-repeat, radial-gradient(circle 11px at 11px 0, #000 98%, #0000) 0 8px / 22px 10px repeat-x;
+          mask: linear-gradient(#000 0 0) top / 100% 8px no-repeat, radial-gradient(circle 11px at 11px 0, #000 98%, #0000) 0 8px / 22px 10px repeat-x;
+}
+/* Sobre fundo verde, a listra escura aparece no lugar da verde */
+.sidebar::before, .brand-panel::before {
+  background: repeating-linear-gradient(90deg, var(--toldo-escuro) 0 22px, var(--creme) 22px 44px);
+}
+.topbar::after, .mobile-bar::after { position: absolute; left: 0; right: 0; top: 100%; z-index: 5; pointer-events: none; }
+
+/* ---------- Marca ---------- */
+.brand-mark {
+  border-radius: 4px; background: var(--etiqueta); color: var(--tinta);
+  font-family: var(--fonte-titulo); font-weight: 800; box-shadow: 2px 2px 0 var(--toldo-escuro);
+}
+.brand-name { font-weight: 800; }
+
+/* ---------- Botões ---------- */
+.btn, .btn-primary, .btn-ghost, .btn-danger, .menu-toggle, .btn-logout {
+  border-radius: 6px; font-family: var(--fonte-texto);
+}
+.btn-primary {
+  background: var(--green-600); color: #fff; border: 0;
+  box-shadow: 0 3px 0 var(--toldo-escuro);
+}
+.btn-primary:hover { background: var(--toldo); }
+.btn-primary:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--toldo-escuro); }
+.btn-ghost {
+  background: var(--cartao); color: var(--tinta); border: 1.5px solid var(--linha-forte);
+}
+.btn-ghost:hover { border-color: var(--tinta); background: #fff; }
+.btn-danger { box-shadow: 0 3px 0 #7d2412; }
+
+/* ---------- Campos ---------- */
+input:not([type=checkbox]):not([type=radio]), select, textarea,
+.field input, .field select, .field textarea, .search input, .input-wrap input, .campo-qtd input, .item-campo input, .entrega input {
+  border-color: var(--linha-forte) !important;
+  border-radius: 6px !important;
+  background-color: #fff;
+}
+input:focus, select:focus, textarea:focus,
+.field input:focus, .field select:focus, .search input:focus, .input-wrap input:focus {
+  border-color: var(--toldo) !important;
+  box-shadow: 0 0 0 3px var(--green-50) !important;
+}
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--tomate) !important; }
+::placeholder { color: #857c6e; opacity: 1; }
+.input-icon, .search svg { color: var(--suave) !important; }
+
+/* ---------- Cartões: papel branco, sem sombra borrada ---------- */
+.card, .form-card, .preview-card, .kpi, .kpi-q, .modal, .contact-dialog {
+  border-radius: 8px;
+  border: 1px solid var(--linha);
+  background: var(--cartao);
+  box-shadow: none;
+}
+.card-title { font-size: 18px; font-weight: 700; }
+
+/* Ícones sem quadradinho colorido atrás (era o que deixava tudo com cara de modelo pronto) */
+.kpi-icon, .kpi-q-icon, .card-icon, .benefit-icon, .leitor-icon, .abrir-icon, .suggestion-icon, .shortcut-icon, .alert-icon {
+  background: none !important; border: 0 !important; border-radius: 0 !important;
+  width: auto !important; height: auto !important;
+}
+.kpi-icon svg, .kpi-q-icon svg, .shortcut-icon svg, .alert-icon svg { width: 22px !important; height: 22px !important; }
+.card-icon svg, .leitor-icon svg, .abrir-icon svg { width: 30px !important; height: 30px !important; stroke: var(--toldo) !important; }
+
+/* ---------- Etiqueta de preço (amarela, como na gôndola) ---------- */
+.preco-etiqueta, #kpi-vendas, #kpi-ticket, .total, .preview-stats strong, .mini-stat strong, #r-total, #r-ticket {
+  display: inline-block; width: fit-content;
+  padding: 2px 10px 3px;
+  background: var(--etiqueta); color: var(--tinta);
+  border-radius: 3px;
+  font-family: var(--fonte-titulo); font-weight: 800;
+  box-shadow: 2px 2px 0 rgba(36, 33, 28, .85);
+}
+.preco-etiqueta { padding: 1px 7px 2px; font-size: 15px; box-shadow: 1px 1px 0 rgba(36, 33, 28, .85); }
+.preco-etiqueta small { color: var(--tinta); font-weight: 600; }
+
+/* ---------- Tela interna: menu lateral como o toldo ---------- */
+.sidebar {
+  background: var(--toldo); color: var(--creme); border-right: 0;
+  padding-top: 0;
+}
+.sidebar::before { margin: 0 -14px 14px; }
+.sidebar .brand { color: var(--creme); }
+.nav-item { color: #d9e6d5; font-weight: 600; border-radius: 4px; }
+.nav-item svg { stroke: currentColor; }
+.nav-item:hover { background: rgba(251, 246, 234, .1); color: #fff; }
+.nav-item.active { background: var(--etiqueta); color: var(--tinta); box-shadow: 2px 2px 0 var(--toldo-escuro); }
+.nav-item .soon { background: transparent; border: 1px solid rgba(251, 246, 234, .5); color: #d9e6d5; border-radius: 3px; }
+.sidebar-footer { border-top-color: rgba(251, 246, 234, .2); }
+.user strong { color: #fff; }
+.user span { color: #d9e6d5; }
+.avatar { background: var(--etiqueta); color: var(--tinta); border-radius: 4px; }
+.btn-logout { background: transparent; color: var(--creme); border: 1.5px solid rgba(251, 246, 234, .45); }
+.btn-logout:hover { color: #fff; border-color: #fff; background: rgba(251, 246, 234, .08); }
+
+.mobile-bar { background: var(--toldo) !important; border-bottom: 0 !important; color: var(--creme); }
+.mobile-bar .brand { color: var(--creme); }
+.menu-toggle { background: transparent !important; color: var(--creme); border: 1.5px solid rgba(251, 246, 234, .6) !important; }
+@media (max-width: 900px) {
+  .sidebar::before { display: none; }
+  .sidebar { padding-top: 20px; }
+  .main { padding-top: 40px; }
+}
+
+.page-head h1 { font-size: 32px; font-weight: 800; }
+.page-head p { color: var(--suave); }
+.live { background: var(--cartao); border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* ---------- Indicadores ---------- */
+.kpi { gap: 2px; }
+.kpi-label, .kpi-q span:last-child { color: var(--suave); font-weight: 600; }
+.kpi-value { font-size: 30px; font-weight: 800; margin: 4px 0 6px; width: fit-content; }
+.kpi-q strong { font-family: var(--fonte-titulo); font-weight: 800; font-size: 28px; }
+/* Estoque e Fornecedores: uma faixa de contadores em vez de vários quadrados */
+.kpis-q { gap: 0; background: var(--cartao); border: 1px solid var(--linha); border-radius: 8px; overflow: hidden; }
+.kpi-q {
+  flex: 1 1 130px; width: auto; min-height: 0; padding: 14px 16px;
+  border: 0; border-right: 1px dashed var(--linha-forte); border-radius: 0; background: transparent;
+}
+.kpi-q:last-child { border-right: 0; }
+.kpi-q strong { margin-top: 2px; }
+.kpi-q:hover { background: #fffaf0; }
+.kpi-q.active { background: #fdf3d4; box-shadow: inset 0 -4px 0 var(--etiqueta); }
+@media (max-width: 760px) {
+  .kpi-q { width: auto; flex-basis: 45%; border-bottom: 1px dashed var(--linha-forte); }
+}
+.icon-green { color: var(--toldo) !important; }
+.icon-amber { color: var(--amber-700) !important; }
+.icon-red { color: var(--tomate) !important; }
+.icon-blue { color: var(--blue-600) !important; }
+
+/* ---------- Atalhos e avisos do Painel ---------- */
+.shortcut { background: var(--cartao); border: 1.5px dashed var(--linha-forte); border-radius: 6px; }
+.shortcut:hover { background: #fff; border-style: solid; border-color: var(--tinta); }
+.alerts li { border-top: 1px dashed var(--linha); }
+
+/* ---------- Filtros (chips) como etiquetinhas ---------- */
+.chip {
+  min-height: 36px; border-radius: 4px; background: var(--cartao);
+  border: 1.5px solid var(--linha-forte); color: var(--tinta); font-family: var(--fonte-texto);
+}
+.chip:hover { border-color: var(--tinta); }
+.chip.active, .chip[aria-pressed="true"] { background: var(--etiqueta); border-color: var(--tinta); color: var(--tinta); }
+.chip span, .chip.active span { background: rgba(36, 33, 28, .08); color: var(--tinta); border-radius: 3px; }
+.etiqueta { background: var(--etiqueta); color: var(--tinta); border-radius: 3px; }
+.contador { background: var(--tomate); border-radius: 3px; }
+
+/* ---------- Tabelas como caderno de anotação ---------- */
+.table-card { overflow: hidden; }
+.table th {
+  background: transparent; color: var(--suave);
+  font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+  border-bottom: 2px solid var(--tinta);
+}
+.table td { border-bottom: 1px dashed var(--linha); }
+.table tr.row:hover td { background: #fffaf0; }
+.table tr.row.open td, .details > td { background: #f8f2e4 !important; }
+.row-toggle { width: 36px; height: 36px; border-radius: 4px; border-color: var(--linha-forte); background: var(--cartao); color: var(--tinta); }
+.link-btn { min-height: 36px; border-radius: 4px; border: 1.5px solid var(--linha-forte); background: var(--cartao); color: var(--tinta); }
+.link-btn:hover { border-color: var(--tinta); color: var(--tinta); }
+.link-btn.danger { color: var(--tomate); }
+.link-btn.danger:hover { border-color: var(--tomate); color: var(--tomate); }
+.detail { border-radius: 4px; background: var(--cartao); }
+.history { border-radius: 4px; }
+.history th { background: transparent; border-bottom: 2px solid var(--tinta); text-transform: uppercase; letter-spacing: .05em; }
+.history td { background: var(--cartao); border-bottom: 1px dashed var(--linha); }
+
+/* Sinais de estoque e validade com contraste de pelo menos 3:1 */
+.dot-low { background: var(--tomate); }
+.qty.low { color: var(--tomate); }
+.sinal-aviso { border-bottom-color: #a86f00; }
+.alerta-validade.atencao { color: #a86f00; }
+.alerta-validade.vencido { color: var(--tomate); }
+
+/* Categorias: etiqueta reta em vez de pílula */
+.cat { border-radius: 3px; }
+.badge, .status { border-radius: 3px; }
+
+/* ---------- Avisos ---------- */
+.aviso, .alert { border-radius: 4px; border-left-width: 4px; }
+.suggestion { background: #fdf3d4; border: 1px solid #e8d08a; border-left: 4px solid var(--amber-700); border-radius: 4px; }
+.suggestion-text small { letter-spacing: .08em; }
+
+/* ---------- Janelas ---------- */
+.modal, .contact-dialog { border-radius: 8px; border-top: 6px solid var(--toldo); }
+.modal::backdrop, .contact-dialog::backdrop { background: rgba(36, 33, 28, .55); }
+.modal-head h2 { font-size: 22px; }
+.confirm-icon { background: var(--red-50); border-radius: 4px; }
+.icon-btn { width: 40px; height: 40px; color: var(--tinta); }
+.toast { background: var(--tinta); border-radius: 4px; box-shadow: 3px 3px 0 var(--etiqueta); }
+
+/* ---------- Caixa ---------- */
+.total { font-size: 34px; margin: 6px 0 4px; }
+.formas .chip { min-height: 44px; }
+.carrinho th { border-bottom: 2px solid var(--tinta); }
+.carrinho td { border-bottom: 1px dashed var(--linha); }
+.resumo-dia strong { font-family: var(--fonte-titulo); font-weight: 800; font-size: 24px; width: fit-content; }
+.resultados:not(:empty) { border-color: var(--linha-forte); border-radius: 4px; }
+.resultado:hover:not([disabled]), .resultado:focus-visible { background: #fdf3d4; }
+
+/* ---------- Site (landing) ---------- */
+.topbar { background: var(--toldo); border-bottom: 0; color: var(--creme); }
+.topbar .brand { color: var(--creme); }
+.topbar .nav-link { color: var(--creme); font-weight: 600; }
+.topbar .nav-link:hover { color: #fff; text-decoration: underline; }
+.topbar .btn-primary { background: var(--etiqueta); color: var(--tinta); box-shadow: 0 3px 0 var(--toldo-escuro); }
+.topbar .btn-primary:hover { background: #ffdb4f; }
+.hero { background: var(--papel); padding-top: clamp(36px, 6vh, 64px); }
+.eyebrow {
+  background: transparent; color: var(--toldo); border-radius: 0; padding: 0 0 4px;
+  border-bottom: 2px solid var(--toldo); text-transform: uppercase; letter-spacing: .1em; font-size: 12px; font-weight: 700;
+}
+.hero h1 { font-size: clamp(34px, 6vh, 54px); font-weight: 800; line-height: 1.05; letter-spacing: -.02em; }
+.hero-text p { color: var(--suave); }
+.preview-card {
+  border-radius: 2px; border: 1px solid var(--linha); transform: rotate(1.2deg);
+  box-shadow: 6px 6px 0 rgba(36, 33, 28, .12);
+  background: var(--cartao);
+}
+.preview-head { font-size: 20px; font-weight: 800; }
+.preview-stats div { background: transparent; padding: 0; }
+.preview-stats strong { font-size: 20px; margin-top: 4px; }
+.preview-alert { background: transparent; color: var(--tomate); border-left: 3px solid var(--tomate); border-radius: 0; font-weight: 600; }
+.preview-row { border-top: 1px dashed var(--linha-forte); }
+.modules { gap: 0; border-top: 2px solid var(--tinta); border-bottom: 1px solid var(--linha); }
+.modules .card { border: 0; border-radius: 0; background: transparent; padding: 20px 22px; }
+.modules .card + .card { border-left: 1px dashed var(--linha-forte); }
+.modules .card h3 { font-size: 18px; font-weight: 700; }
+.footer { background: var(--papel); border-top: 0; }
+@media (max-width: 900px) {
+  .modules .card + .card { border-left: 0; border-top: 1px dashed var(--linha-forte); }
+}
+
+/* ---------- Login ---------- */
+.brand-panel { background: var(--toldo) !important; padding-top: 0 !important; }
+.brand-panel::after { display: none !important; }
+.brand-panel::before {
+  position: static !important; width: auto !important; height: 18px !important; border-radius: 0 !important;
+  margin: 0 -56px 28px; background-color: transparent;
+}
+.brand-content h2 { font-family: var(--fonte-titulo); font-weight: 800; font-size: 38px; line-height: 1.08; }
+.benefit-icon svg { width: 24px !important; height: 24px !important; stroke: var(--etiqueta); }
+.mini-stat { background: transparent; border: 1px dashed rgba(251, 246, 234, .4); border-radius: 4px; }
+.mini-stat strong { font-size: 20px; margin: 4px 0; }
+.mini-stat .trend { display: block; color: var(--creme); }
+.brand-light .brand-mark { background: var(--etiqueta); color: var(--tinta); }
+.form-card { border-radius: 8px; }
+.badge-secure { background: transparent; color: var(--toldo); padding: 0; border-radius: 0; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; font-weight: 700; }
+.toggle-pass, .link { color: var(--toldo); }
+.toggle-pass:hover { background: var(--green-50); }
+.profile-dot { border-radius: 2px; }
+.dev-icon { background: var(--etiqueta); color: var(--tinta); border-radius: 4px; }
+.dev-list { background: var(--papel); border-radius: 4px; }

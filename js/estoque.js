@@ -86,7 +86,7 @@
           <td class="c-nome"><span class="prod-name">${esc(p.nome)}</span></td>
           <td class="c-cat">${R.pilulaCategoria(p.categoria)}</td>
           <td class="num c-qtd">${sinalQuantidade(p, d)}</td>
-          <td class="num c-preco">${App.moeda(p.preco)}${R.porPeso(p) ? '<small class="muted"> /kg</small>' : ""}</td>
+          <td class="num c-preco"><span class="preco-etiqueta">${App.moeda(p.preco)}${R.porPeso(p) ? "<small>/kg</small>" : ""}</span></td>
           <td class="c-alerta">${alertaValidade(sv)}</td>
           <td class="col-toggle">
             <button type="button" class="row-toggle" data-acao="detalhes" aria-expanded="${aberto}"

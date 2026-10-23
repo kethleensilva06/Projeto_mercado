@@ -53,6 +53,12 @@ const App = (() => {
         ${svg(m.id)}<span>${m.nome}</span>${m.pronto ? "" : '<span class="soon">em breve</span>'}
       </a>`).join("");
 
+    // Atalho do teclado para pular o menu e ir direto ao conteúdo da tela
+    const main = document.querySelector("main");
+    main.id = main.id || "conteudo";
+    main.tabIndex = -1;
+    document.body.insertAdjacentHTML("afterbegin", `<a class="pular" href="#${main.id}">Pular para o conteúdo</a>`);
+
     const sidebar = document.getElementById("sidebar");
     sidebar.innerHTML = `
       <a class="brand" href="${Auth.DESTINO_POR_PERFIL[sessao.perfil]}">
