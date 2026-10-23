@@ -54,6 +54,9 @@ h1, h2, h3, .brand-name, .card-title, .kpi-value, .total, .preview-head {
 }
 h1 { font-weight: 800; }
 
+/* Texto só para leitor de tela: não pode empurrar a página para o lado */
+.sr-only { margin: -1px; padding: 0; border: 0; clip-path: inset(50%); }
+
 /* "Pular para o conteúdo": só aparece quando recebe o foco pelo teclado */
 .pular {
   position: fixed; left: 12px; top: -60px; z-index: 100;
@@ -275,6 +278,70 @@ input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="
 .confirm-icon { background: var(--red-50); border-radius: 4px; }
 .icon-btn { width: 40px; height: 40px; color: var(--tinta); }
 .toast { background: var(--tinta); border-radius: 4px; box-shadow: 3px 3px 0 var(--etiqueta); }
+
+/* ---------- Fornecedores ---------- */
+.forn-name { font-family: var(--fonte-titulo); font-size: 16px; font-weight: 700; }
+.forn-email { color: var(--suave); }
+.table th, .table td { position: relative; }
+@media (min-width: 761px) {
+  /* Colunas com largura fixa: a tabela nunca passa da largura do cartão */
+  .table-card:has(.c-prod) .table { table-layout: fixed; }
+  .table-card:has(.c-prod) .table th:nth-child(1) { width: 25%; }
+  .table-card:has(.c-prod) .table th:nth-child(2) { width: 17%; }
+  .table-card:has(.c-prod) .table th:nth-child(3) { width: 25%; }
+  .table-card:has(.c-prod) .table th:nth-child(4) { width: 16%; }
+  .table-card:has(.c-prod) .table th:nth-child(5) { width: 17%; }
+  .table-card:has(.c-prod) .table th.col-toggle { width: 56px; }
+  .table-card:has(.c-prod) .table th { letter-spacing: .02em; padding-left: 10px; padding-right: 10px; }
+  .table-card:has(.c-prod) .table td { padding-left: 10px; padding-right: 10px; }
+  .table td.c-tel .tel { white-space: normal; }
+  .table td.c-nome, .table td.c-prod { overflow-wrap: anywhere; }
+  .table td.c-ult, .table td.c-status { white-space: nowrap; }
+}
+.prod-chips { gap: 4px; }
+.prod-chip {
+  white-space: normal; border-radius: 3px; padding: 2px 8px;
+  background: var(--papel); border: 1px solid var(--linha); color: var(--tinta);
+}
+.prod-chip.mais { background: transparent; border-style: dashed; border-color: var(--linha-forte); color: var(--suave); }
+.status { border: 1px solid currentColor; background: transparent !important; }
+.status-em-dia { color: var(--toldo); }
+.status-pendente { color: var(--amber-700); }
+.status-atrasado { color: var(--tomate); background: var(--red-50) !important; }
+.status-sem-pedidos { color: var(--suave); border-style: dashed; }
+.details .history-title, .history-title {
+  margin-top: 18px; color: var(--tinta); font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  border-bottom: 2px solid var(--tinta); padding-bottom: 4px; width: fit-content;
+}
+.prod-item { border-radius: 4px; border: 1px solid var(--linha); background: var(--cartao); }
+.contato-rapido { padding: 10px 12px; border: 1px dashed var(--linha-forte); border-radius: 4px; background: var(--cartao); width: fit-content; max-width: 100%; }
+.diferenca { color: var(--amber-700); font-weight: 600; }
+.table tr.row.desativado td { background: repeating-linear-gradient(135deg, transparent 0 10px, rgba(36, 33, 28, .03) 10px 20px); }
+
+/* Janela de pedido: itens como lista de compras e a mensagem como um bilhete */
+.item-pedido { border-bottom: 1px dashed var(--linha-forte); }
+.item-nome strong { font-family: var(--fonte-titulo); font-weight: 700; }
+.item-nome small.erro { color: var(--tomate); }
+.busca-item { margin-top: 12px; }
+.resultados:not(:empty) { border: 1px solid var(--linha-forte); border-radius: 4px; }
+.resultado { background: var(--cartao); border-top: 1px dashed var(--linha); }
+.resultado:hover, .resultado:focus-visible { background: #fdf3d4 !important; }
+.previa {
+  background: #fffbe8; border: 1px solid #e8d08a; border-left: 4px solid var(--etiqueta); border-radius: 2px;
+  font-family: var(--fonte-texto); color: var(--tinta); line-height: 1.55;
+}
+.rotulo-linha label { font-size: 14px; }
+.grupo-radio .check input { accent-color: var(--toldo); }
+
+/* Janela de envio: WhatsApp e e-mail */
+.botoes-envio .btn { min-height: 48px; }
+.botoes-envio .btn-ghost { color: var(--tinta); }
+#me-mensagem { background: #fffbe8; border-left: 4px solid var(--etiqueta) !important; line-height: 1.55; }
+
+/* Janela de entrega */
+.entrega td { vertical-align: top; }
+.entrega td strong { font-family: var(--fonte-titulo); }
 
 /* ---------- Caixa ---------- */
 .total { font-size: 34px; margin: 6px 0 4px; }
