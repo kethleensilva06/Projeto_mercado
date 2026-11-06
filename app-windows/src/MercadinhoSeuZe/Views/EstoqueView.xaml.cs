@@ -9,7 +9,8 @@ namespace MercadinhoSeuZe.Views;
 
 /// <summary>
 /// Estoque do gerente (igual a estoque.html do site): produtos com lotes, quantidade restante e validade,
-/// filtros, ordem e indicadores. Lê e grava no Supabase (database/003_semana3_estoque.sql).
+/// filtros, ordem e indicadores. Lê e grava no Supabase (database/003_semana3_estoque.sql). A aba Promoções
+/// (EstoqueView.Promocoes.cs, script 008) cadastra as promoções por produto e de validade por categoria.
 /// </summary>
 public partial class EstoqueView : UserControl
 {
@@ -22,6 +23,8 @@ public partial class EstoqueView : UserControl
     private bool _procurandoCodigo;
     private readonly HashSet<long> _abertos = [];   // produtos com os lotes à mostra
     private List<Produto> _produtos = [];
+    private List<Promocao> _promocoes = [];
+    private List<RegraValidade> _regras = [];
     private List<Fornecedor>? _listaFornecedores;   // null = tabela de fornecedores ainda não existe
     private List<Pedido> _pendentes = [];
     private string _filtro = "todos";
@@ -30,6 +33,8 @@ public partial class EstoqueView : UserControl
     private string _ordem = "nome";
     private bool _compacta;
     private bool _carregou;
+    private readonly Paginacao _paginas = new("estoque", [5, 10, 25, 50, 100], 10);
+    private string? _ultimaConsulta;     // busca + filtros + ordem do último desenho (mudou = volta à página 1)
 
     public EstoqueView(AreaInternaView area, EstoqueService? servico, FornecedorService? fornecedores)
     {
@@ -37,6 +42,7 @@ public partial class EstoqueView : UserControl
         _area = area;
         _servico = servico;
         _fornecedores = fornecedores;
+        _paginas.Mudou += () => { Mostrar(); CabecalhoTabela.BringIntoView(); };
         AjustarColunas(CabecalhoTabela);
         IniciarAtalhosDesenvolvimento();
         Loaded += async (_, _) => { if (!_carregou) await CarregarAsync(); };
@@ -54,18 +60,27 @@ public partial class EstoqueView : UserControl
             return;
         }
 
+        // Tudo pedido ao mesmo tempo: o tempo de espera é o da consulta mais lenta, não a soma delas
+        var fornecedores = CarregarFornecedoresAsync();
         try
         {
-            _produtos = await _servico.ListarAsync();
+            var lista = _servico.ListarComPromocoesAsync();
+            var reservados = _servico.ReservadosAsync();
+            await Task.WhenAll(lista, reservados);
+            (_produtos, _promocoes, _regras) = lista.Result;
+            foreach (var p in _produtos) p.Reservado = reservados.Result.GetValueOrDefault(p.Id);
         }
         catch (ConexaoException ex)
         {
+            await fornecedores;
             MostrarErro(ex.Message);
             return;
         }
-        await CarregarFornecedoresAsync();
+        await fornecedores;
+        if (_listaFornecedores is not null) Fornecedor.AplicarPrazos(_produtos, _listaFornecedores);
         Mostrar();
-        Leitor.Focus();
+        MostrarPromocoes();
+        if (AbaPromocoes.Visibility != Visibility.Visible) Leitor.Focus();
     }
 
     /// <summary>
@@ -82,7 +97,6 @@ public partial class EstoqueView : UserControl
             await Task.WhenAll(lista, pendentes);
             _listaFornecedores = lista.Result;
             _pendentes = pendentes.Result;
-            Fornecedor.AplicarPrazos(_produtos, _listaFornecedores);
         }
         catch (ConexaoException)
         {
@@ -118,6 +132,8 @@ public partial class EstoqueView : UserControl
         var nVencido = _produtos.Count(p => p.Vencido);
         var nAviso = _produtos.Count(p => p.AvisoAntecipado);
 
+        foreach (var kpi in Kpis.Children.OfType<Button>())
+            kpi.Tag = kpi.Uid == _filtro ? "ativo" : null;
         KpiTotal.Text = _produtos.Count.ToString(PtBr);
         var unidades = _produtos.Where(p => !p.PorPeso).Sum(p => p.Quantidade);
         var quilos = _produtos.Where(p => p.PorPeso).Sum(p => p.Quantidade);
@@ -133,10 +149,13 @@ public partial class EstoqueView : UserControl
                       $"{nSem} sem estoque · {nValidade} com validade próxima · {nVencido} vencidos";
 
         var termo = Busca.Text.Trim();
+        // Busca, filtro ou ordem diferentes da última vez: volta para a página 1 (abrir lotes ou editar mantém a página)
+        var consulta = $"{termo}|{_filtro}|{_categoria}|{_tipo}|{_ordem}";
+        if (consulta != _ultimaConsulta) _paginas.Inicio();
+        _ultimaConsulta = consulta;
+
         IEnumerable<Produto> lista = _produtos
-            .Where(p => PassaBusca(p, termo) && PassaSituacao(p, _filtro) && PassaCategoria(p, _categoria) && PassaTipo(p, _tipo))
-            .ToList();
-        MostrarFiltrosAtivos(termo, ((List<Produto>)lista).Count);
+            .Where(p => PassaBusca(p, termo) && PassaSituacao(p, _filtro) && PassaCategoria(p, _categoria) && PassaTipo(p, _tipo));
         var porNome = StringComparer.Create(PtBr, CompareOptions.IgnoreCase);
         lista = _ordem switch
         {
@@ -146,10 +165,13 @@ public partial class EstoqueView : UserControl
             "preco" => lista.OrderBy(p => p.Preco).ThenBy(p => p.Nome, porNome),
             _ => lista.OrderBy(p => p.Nome, porNome)
         };
+        var pagina = _paginas.Recortar(lista.ToList());
+        MostrarFiltrosAtivos(termo, _paginas.Total);
 
         Lista.Children.Clear();
-        foreach (var p in lista)
+        foreach (var p in pagina)
             Lista.Children.Add(LinhaProduto(p));
+        BarraPaginas.Content = _paginas.Barra();
 
         Vazio.Visibility = Lista.Children.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         Vazio.Text = _produtos.Count == 0 ? "Nenhum produto cadastrado ainda. Clique em “Novo produto” para começar."
@@ -256,9 +278,33 @@ public partial class EstoqueView : UserControl
         });
         Colocar(grade, qtd, 2);
 
-        var preco = Celula(p.Preco.ToString("C", PtBr) + (p.PorPeso ? "/kg" : ""));
-        preco.HorizontalAlignment = HorizontalAlignment.Right;
-        Colocar(grade, preco, 3);
+        var promo = p.PromocaoAtiva;
+        var preco = new Border
+        {
+            Style = Recurso<Style>("EtiquetaPreco"),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Child = new TextBlock
+            {
+                Text = (promo?.PrecoCom(p.Preco) ?? p.Preco).ToString("C", PtBr) + (p.PorPeso ? "/kg" : ""),
+                FontWeight = FontWeights.Bold, FontSize = 14, Foreground = Recurso<Brush>("Tinta")
+            }
+        };
+        var celulaPreco = new StackPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
+        if (promo is not null)
+        {
+            // Em promoção: o preço normal riscado em cima da etiqueta
+            var antes = new TextBlock
+            {
+                FontSize = 11.5, Foreground = Recurso<Brush>("Suave"), HorizontalAlignment = HorizontalAlignment.Right,
+                TextWrapping = TextWrapping.NoWrap, Margin = new Thickness(0, 0, 0, 2)
+            };
+            antes.Inlines.Add(new System.Windows.Documents.Run("promoção  ") { FontWeight = FontWeights.SemiBold, Foreground = Recurso<Brush>("Verde700") });
+            antes.Inlines.Add(new System.Windows.Documents.Run(p.Preco.ToString("C", PtBr)) { TextDecorations = TextDecorations.Strikethrough });
+            celulaPreco.Children.Add(antes);
+            celulaPreco.ToolTip = $"Promoção {promo.Texto} {promo.Periodo}";
+        }
+        celulaPreco.Children.Add(preco);
+        Colocar(grade, celulaPreco, 3);
 
         // Clicar em qualquer parte da linha também abre e fecha
         var linha = new Border { Background = Brushes.Transparent, Cursor = System.Windows.Input.Cursors.Hand, Child = grade };
@@ -291,10 +337,18 @@ public partial class EstoqueView : UserControl
 
         var resumo = new WrapPanel();
         resumo.Children.Add(Detalhe("Em estoque", p.Formatar(p.Quantidade)));
+        if (p.Reservado > 0)
+            resumo.Children.Add(Detalhe("Reservado no caixa", p.Formatar(p.Reservado) + " (venda aberta)"));
         resumo.Children.Add(Detalhe("Já vendido", p.Formatar(p.Vendido)));
         resumo.Children.Add(DetalheValidade("Próxima validade", p.ProximaValidade, p.Situacao));
         resumo.Children.Add(Detalhe("Estoque mínimo", p.Formatar(p.EstoqueMinimo)));
         resumo.Children.Add(Detalhe("Aviso antecipado em", p.Formatar(p.LimiteAviso) + (p.PontoDePedido is null ? "" : " (calculado)")));
+        if (_servico is { TemAjustes: true })
+        {
+            resumo.Children.Add(Detalhe("Preço de custo", p.PrecoCusto is { } custo ? custo.ToString("C", PtBr) + (p.PorPeso ? "/kg" : "") : "não informado"));
+            if (p.Margem is { } margem)
+                resumo.Children.Add(Detalhe("Margem", margem.ToString("P0", PtBr)));
+        }
         if (_listaFornecedores is not null)
         {
             var fornecedor = _listaFornecedores.FirstOrDefault(f => f.Id == p.FornecedorId);
@@ -306,6 +360,13 @@ public partial class EstoqueView : UserControl
         }
         var porCaixa = $"{p.Numero(p.UnidadesPorCaixa)} {p.Sigla}";
         resumo.Children.Add(Detalhe("Caixa", p.CodigoBarrasCaixa is null ? $"{porCaixa} (sem código)" : $"{p.CodigoBarrasCaixa} · {porCaixa}"));
+        if (p.CodigoBalanca is { } plu)
+            resumo.Children.Add(Detalhe("Código na balança", plu.ToString(PtBr)));
+        if (p.PromocaoAtiva is { } ativa)
+            resumo.Children.Add(Detalhe("Promoção", $"{ativa.PrecoCom(p.Preco).ToString("C", PtBr)}{(p.PorPeso ? "/kg" : "")} · {ativa.Periodo}"));
+        if (p.RegraValidade is { Ativa: true } regra)
+            resumo.Children.Add(Detalhe("Promoção de validade", p.SemPromocaoValidade ? "fora (marcado no cadastro)"
+                : $"{regra.DiasAntes} dias antes, {Porcento(regra.DescontoMin)} a {Porcento(regra.DescontoMax)}"));
         topo.Children.Add(resumo);
         painel.Children.Add(topo);
 
@@ -342,7 +403,11 @@ public partial class EstoqueView : UserControl
             info.Children.Add(BarraLote(p, l));
             info.Children.Add(Detalhe("Vendido", p.PorPeso ? p.Formatar(l.Vendido) : p.Numero(l.Vendido), menor: true));
             info.Children.Add(Detalhe("Compra", l.DataCompra.ToString("dd/MM/yyyy", PtBr), menor: true));
+            if (l.PrecoCusto is { } custoLote)
+                info.Children.Add(Detalhe("Custo", custoLote.ToString("C", PtBr) + (p.PorPeso ? "/kg" : ""), menor: true));
             info.Children.Add(DetalheValidade("Validade", l.Validade, l.Esgotado ? null : l.Situacao, menor: true));
+            if (Promocoes.DescontoValidade(p, l) is var descontoLote && descontoLote > 0)
+                info.Children.Add(Detalhe("Promoção de validade", $"{Porcento(descontoLote)} hoje · {Promocoes.PrecoDoLote(p, l).ToString("C", PtBr)}{(p.PorPeso ? "/kg" : "")}", menor: true));
             linha.Children.Add(info);
             painel.Children.Add(caixa);
         }
@@ -543,7 +608,7 @@ public partial class EstoqueView : UserControl
             var fornecedorPedido = pedido is null ? null : _listaFornecedores?.FirstOrDefault(f => f.Id == pedido.FornecedorId);
             janela = new LoteJanela(this, _area, _servico, produto, null, pelaCaixa: true, pedido, fornecedorPedido?.Nome,
                 pedido is null || _fornecedores is null ? null : () => _area.AbrirJanela(
-                    new EntregaJanela(_area, _fornecedores, pedido, fornecedorPedido?.Nome ?? "", _produtos, RecarregarAsync)));
+                    new EntregaJanela(_area, _fornecedores, pedido, fornecedorPedido, _produtos, RecarregarAsync)));
         }
         else
         {
@@ -625,9 +690,8 @@ public partial class EstoqueView : UserControl
     private void AoRedimensionar(object sender, SizeChangedEventArgs e)
     {
         // Cinco quadrados numa fileira: diminuem junto com a janela (no máximo 140 px)
-        var lado = Math.Max(96, Math.Min(140, (e.NewSize.Width - 5 * 12) / 5));
-        foreach (var kpi in Kpis.Children.OfType<Button>())
-            kpi.Width = kpi.Height = lado;
+        // Janela estreita: os contadores da faixa vão para duas linhas
+        Kpis.Rows = e.NewSize.Width < 600 ? 2 : 1;
         var compacta = e.NewSize.Width < 760;
         if (compacta == _compacta) return;
         _compacta = compacta;
@@ -717,4 +781,6 @@ public partial class EstoqueView : UserControl
         PtBr.CompareInfo.IndexOf(texto, termo, CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) >= 0;
 
     private static string Plural(int n, string um, string varios) => $"{n} {(n == 1 ? um : varios)}";
+
+    private static string Porcento(decimal valor) => valor.ToString("0.##", PtBr) + "%";
 }

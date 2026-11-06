@@ -12,6 +12,8 @@ public sealed class Lote
     [JsonPropertyName("quantidade_restante")] public decimal QuantidadeRestante { get; set; }
     [JsonPropertyName("data_compra")] public DateOnly DataCompra { get; set; }
     [JsonPropertyName("validade")] public DateOnly? Validade { get; set; }
+    /// <summary>Custo por unidade (ou por kg) desta compra; null = não informado.</summary>
+    [JsonPropertyName("preco_custo")] public decimal? PrecoCusto { get; set; }
 
     public bool Esgotado => QuantidadeRestante == 0;
 
@@ -44,6 +46,45 @@ public sealed class Produto
     [JsonPropertyName("prazo_entrega_dias")] public int? PrazoEntregaDias { get; set; }
     /// <summary>"Pedir antes de acabar": o aviso antecipado vira o ponto de pedido calculado (PontoDePedido).</summary>
     [JsonPropertyName("pedir_antes")] public bool PedirAntes { get; set; }
+    /// <summary>Último preço de custo (por unidade ou por kg); atualizado a cada entrega com custo.</summary>
+    [JsonPropertyName("preco_custo")] public decimal? PrecoCusto { get; set; }
+    /// <summary>Código do produto na balança do açougue (PLU), que vai impresso na etiqueta; null = sem etiqueta.</summary>
+    [JsonPropertyName("codigo_balanca")] public int? CodigoBalanca { get; set; }
+    /// <summary>Fica fora da promoção de validade da categoria (script 008).</summary>
+    [JsonPropertyName("sem_promocao_validade")] public bool SemPromocaoValidade { get; set; }
+
+    /// <summary>Promoção do produto que vale hoje (não vem nesta consulta; as telas preenchem com Promocoes.Aplicar).</summary>
+    [JsonIgnore] public Promocao? PromocaoAtiva { get; set; }
+
+    /// <summary>Regra de promoção de validade da categoria (preenchida por Promocoes.Aplicar).</summary>
+    [JsonIgnore] public RegraValidade? RegraValidade { get; set; }
+
+    /// <summary>
+    /// Quanto está reservado em vendas abertas do caixa (não vem nesta consulta; as telas preenchem com
+    /// EstoqueService.ReservadosAsync). Continua nos lotes, mas já não pode ser vendido.
+    /// </summary>
+    [JsonIgnore] public decimal Reservado { get; set; }
+
+    /// <summary>O que está nos lotes dentro da validade (lote vencido não pode ser vendido).</summary>
+    public decimal Vendavel => Lotes.Where(l => l.QuantidadeRestante > 0 && !(l.Validade < Hoje)).Sum(l => l.QuantidadeRestante);
+
+    /// <summary>O que ainda pode ir para uma venda: dentro da validade e sem reserva.</summary>
+    public decimal DisponivelParaVenda => Math.Max(0, Vendavel - Reservado);
+
+    /// <summary>Unidades (ou kg) em lotes vencidos, que o caixa bloqueia.</summary>
+    public decimal QuantidadeVencida => Quantidade - Vendavel;
+
+    private static DateOnly Hoje => DateOnly.FromDateTime(DateTime.Today);
+
+    /// <summary>Outros fornecedores de quem o produto é comprado, com o último custo de cada um.</summary>
+    [JsonPropertyName("produto_fornecedores")] public List<ProdutoFornecedor> Vinculos { get; set; } = [];
+
+    /// <summary>Margem sobre o preço de venda: (venda - custo) / venda. null sem custo.</summary>
+    public decimal? Margem => PrecoCusto is { } c && Preco > 0 ? (Preco - c) / Preco : null;
+
+    /// <summary>Último custo deste produto com o fornecedor (ou o custo geral do produto).</summary>
+    public decimal? CustoCom(long fornecedorId) =>
+        Vinculos.FirstOrDefault(v => v.FornecedorId == fornecedorId)?.UltimoCusto ?? PrecoCusto;
 
     /// <summary>
     /// Prazo padrão do fornecedor deste produto (não vem do banco; as telas preenchem com

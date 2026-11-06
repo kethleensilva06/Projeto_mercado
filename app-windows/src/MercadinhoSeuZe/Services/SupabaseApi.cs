@@ -10,6 +10,12 @@ public class ConexaoException(string mensagem) : Exception(mensagem);
 /// <summary>O banco ainda não tem uma coluna nova (o script SQL da semana não foi rodado).</summary>
 public class BancoDesatualizadoException(string mensagem) : ConexaoException(mensagem);
 
+/// <summary>A tabela ou a função ainda não existe no banco (o script SQL da semana não foi rodado).</summary>
+public class TabelaInexistenteException(string mensagem) : ConexaoException(mensagem);
+
+/// <summary>A Edge Function (e-mail, script 009) ainda não foi publicada no Supabase.</summary>
+public class FuncaoInexistenteException(string mensagem) : ConexaoException(mensagem);
+
 /// <summary>Acesso HTTP ao Supabase (Auth e tabelas) usando só a chave pública.</summary>
 public sealed class SupabaseApi
 {
@@ -17,7 +23,14 @@ public sealed class SupabaseApi
 
     public SupabaseApi(Configuracao config)
     {
-        Http = new HttpClient { BaseAddress = new Uri(config.SupabaseUrl + "/"), Timeout = TimeSpan.FromSeconds(15) };
+        // Respostas comprimidas (gzip/brotli): a lista de produtos com lotes chega bem menor e mais rápido.
+        // A mesma conexão é reaproveitada entre as telas e renovada a cada 5 minutos.
+        var conexao = new SocketsHttpHandler
+        {
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+        };
+        Http = new HttpClient(conexao) { BaseAddress = new Uri(config.SupabaseUrl + "/"), Timeout = TimeSpan.FromSeconds(15) };
         Http.DefaultRequestHeaders.Add("apikey", config.SupabaseAnonKey);
     }
 
@@ -81,6 +94,41 @@ public sealed class SupabaseApi
         return corpo.Length == 0 ? default : System.Text.Json.JsonSerializer.Deserialize<T>(corpo);
     }
 
+    /// <summary>
+    /// Chama uma Edge Function do Supabase (functions/v1/...) com o token de quem está logado. As senhas do e-mail ficam
+    /// nos segredos da função, nunca no programa. A função responde {"erro": "..."} em português quando algo falha.
+    /// </summary>
+    public async Task<T?> FuncaoAsync<T>(string funcao, object corpo, string token)
+    {
+        using var req = new HttpRequestMessage(HttpMethod.Post, $"functions/v1/{funcao}") { Content = JsonContent.Create(corpo) };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        HttpResponseMessage resposta;
+        try
+        {
+            using var limite = new CancellationTokenSource(TimeSpan.FromSeconds(40));
+            resposta = await Http.SendAsync(req, limite.Token);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            throw new ConexaoException("Não foi possível falar com o servidor de e-mail. Verifique a internet.");
+        }
+        var texto = await resposta.Content.ReadAsStringAsync();
+        if (resposta.IsSuccessStatusCode)
+            return texto.Length == 0 ? default : System.Text.Json.JsonSerializer.Deserialize<T>(texto);
+        if (resposta.StatusCode == HttpStatusCode.NotFound && !texto.Contains("\"erro\""))
+            throw new FuncaoInexistenteException("A função de e-mail ainda não foi publicada no Supabase (veja o README).");
+        string? erro = null;
+        try
+        {
+            using var json = System.Text.Json.JsonDocument.Parse(texto);
+            if (json.RootElement.TryGetProperty("erro", out var e)) erro = e.GetString();
+        }
+        catch (System.Text.Json.JsonException)
+        {
+        }
+        throw new ConexaoException(erro ?? $"Erro no servidor de e-mail ({(int)resposta.StatusCode}). Tente novamente.");
+    }
+
     private HttpRequestMessage Requisicao(HttpMethod metodo, string caminho, string token, object? corpo = null)
     {
         var req = new HttpRequestMessage(metodo, $"rest/v1/{caminho}");
@@ -114,18 +162,21 @@ public sealed class SupabaseApi
         if (resposta.IsSuccessStatusCode) return resposta;
 
         var corpo = await resposta.Content.ReadAsStringAsync();
-        if (resposta.StatusCode == HttpStatusCode.BadRequest && corpo.Contains("\"42703\""))
+        if (resposta.StatusCode == HttpStatusCode.BadRequest && (corpo.Contains("\"42703\"") || corpo.Contains("\"PGRST200\"")))
             throw new BancoDesatualizadoException("O banco ainda não tem as colunas novas. Rode o script SQL da semana no Supabase.");
         // Mensagens escritas nas funções do banco (raise exception), já em português
         if (corpo.Contains("\"22023\"") && MensagemDoBanco(corpo) is { } mensagem)
             throw new ConexaoException(mensagem);
+        // Falta de permissão explicada pela função (as do banco em inglês ficam com o texto padrão abaixo)
+        if (corpo.Contains("\"42501\"") && MensagemDoBanco(corpo) is { } negado && !negado.StartsWith("permission denied", StringComparison.OrdinalIgnoreCase))
+            throw new ConexaoException(negado);
+        if (resposta.StatusCode == HttpStatusCode.NotFound && (corpo.Contains("PGRST205") || corpo.Contains("PGRST202") || corpo.Contains("does not exist")))
+            throw new TabelaInexistenteException("As tabelas desta tela ainda não foram criadas no banco. Rode o script SQL da semana no Supabase.");
         throw new ConexaoException(resposta.StatusCode switch
         {
             HttpStatusCode.Unauthorized when corpo.Contains("JWT expired") => "Sua sessão expirou. Clique em Sair e entre de novo.",
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => "Seu perfil não tem permissão para esta ação.",
             HttpStatusCode.Conflict => "Já existe um registro com esses dados.",
-            HttpStatusCode.NotFound when corpo.Contains("PGRST205") || corpo.Contains("PGRST202") || corpo.Contains("does not exist") =>
-                "As tabelas desta tela ainda não foram criadas no banco. Rode o script SQL da semana no Supabase.",
             _ => $"Erro no servidor ({(int)resposta.StatusCode}). Tente novamente."
         });
     }

@@ -19,11 +19,15 @@ public partial class FornecedoresView : UserControl
     private readonly AreaInternaView _area;
     private readonly FornecedorService? _servico;
     private readonly EstoqueService? _estoque;
+    private readonly MensagensService? _mensagens;
+    private Dictionary<long, NaoLidas> _naoLidas = [];
     private readonly HashSet<long> _abertos = [];          // fornecedores com o drop-down aberto
     private readonly HashSet<long> _todosProdutos = [];    // drop-downs mostrando todos os produtos
-    private readonly HashSet<long> _todoHistorico = [];    // drop-downs mostrando todos os pedidos
     private List<Fornecedor> _fornecedores = [];
-    private List<Pedido> _pedidos = [];
+    private List<Pedido> _pedidos = [];                    // com itens: últimos 90 dias e os pendentes
+    private Dictionary<long, (int Total, DateOnly Ultimo)> _resumoPedidos = [];   // todos os pedidos, sem itens
+    private readonly Dictionary<long, List<Pedido>> _historicoCompleto = [];      // "Ver histórico completo" aberto
+    private readonly Dictionary<long, Paginacao> _paginasHistorico = [];
     private List<Produto> _produtos = [];
     private string _filtro = "todos";
     private bool _compacta;
@@ -31,12 +35,13 @@ public partial class FornecedoresView : UserControl
     private bool _dadosProntos;
     private Action? _depoisDeCarregar;
 
-    public FornecedoresView(AreaInternaView area, FornecedorService? servico, EstoqueService? estoque)
+    public FornecedoresView(AreaInternaView area, FornecedorService? servico, EstoqueService? estoque, MensagensService? mensagens = null)
     {
         InitializeComponent();
         _area = area;
         _servico = servico;
         _estoque = estoque;
+        _mensagens = mensagens;
         AjustarColunas(CabecalhoTabela);
         IniciarAtalhosDesenvolvimento();
         Loaded += async (_, _) => { if (!_carregou) await CarregarAsync(); };
@@ -58,10 +63,16 @@ public partial class FornecedoresView : UserControl
         {
             var fornecedores = _servico.ListarAsync();
             var pedidos = _servico.ListarPedidosAsync();
+            var resumo = _servico.ResumoPedidosAsync();
             var produtos = _estoque.ListarAsync();
-            await Task.WhenAll(fornecedores, pedidos, produtos);
+            var naoLidas = CarregarNaoLidasAsync();
+            // Históricos completos que estavam abertos voltam atualizados (depois de um pedido ou entrega novos)
+            var completos = _historicoCompleto.Keys.ToDictionary(id => id, _servico.PedidosDoFornecedorAsync);
+            await Task.WhenAll([fornecedores, pedidos, resumo, produtos, naoLidas, .. completos.Values]);
             _fornecedores = fornecedores.Result;
             _pedidos = pedidos.Result;
+            _resumoPedidos = resumo.Result.GroupBy(p => p.FornecedorId).ToDictionary(g => g.Key, g => (g.Count(), g.Max(p => p.Data)));
+            foreach (var (id, lista) in completos) _historicoCompleto[id] = lista.Result;
             _produtos = produtos.Result;
             Fornecedor.AplicarPrazos(_produtos, _fornecedores);
         }
@@ -75,6 +86,51 @@ public partial class FornecedoresView : UserControl
         var acao = _depoisDeCarregar;
         _depoisDeCarregar = null;
         acao?.Invoke();
+    }
+
+    /// <summary>Mensagens não lidas dos fornecedores (script 009); sem o script, o ícone de mensagens não aparece.</summary>
+    private async Task CarregarNaoLidasAsync()
+    {
+        if (_mensagens is null) return;
+        try
+        {
+            _naoLidas = (await _mensagens.NaoLidasAsync()).ToDictionary(n => n.FornecedorId);
+        }
+        catch (ConexaoException)
+        {
+            // Sem internet agora: o ícone fica sem o número até a próxima leitura
+        }
+    }
+
+    /// <summary>Abre a conversa com o fornecedor (pedido escolhido ou o mais recente).</summary>
+    public void AbrirMensagens(Fornecedor f, long? pedidoId = null)
+    {
+        if (_mensagens is not { TemMensagens: true }) return;
+        _area.AbrirJanela(new MensagensJanela(_area, _mensagens, f, PedidosDe(f), pedidoId, async () =>
+        {
+            await CarregarNaoLidasAsync();
+            Mostrar();
+        }));
+    }
+
+    /// <summary>Ícone de mensagens do cartão, com o número de não lidas.</summary>
+    private Button BotaoMensagens(Fornecedor f)
+    {
+        var nao = _naoLidas.GetValueOrDefault(f.Id)?.Quantidade ?? 0;
+        var conteudo = new Grid();
+        conteudo.Children.Add(new ContentControl { Style = Recurso<Style>("Icone"), Tag = Recurso<Geometry>("IconeEmail"), Foreground = Recurso<Brush>("Verde700"), Width = 20, Margin = new Thickness(4, 6, 8, 2) });
+        if (nao > 0)
+            conteudo.Children.Add(new Border
+            {
+                Background = Recurso<Brush>("Vermelho600"), CornerRadius = new CornerRadius(8), MinWidth = 16, Height = 16, Padding = new Thickness(4, 0, 4, 0),
+                HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top,
+                Child = new TextBlock { Text = nao > 9 ? "9+" : nao.ToString(PtBr), FontSize = 10.5, FontWeight = FontWeights.Bold, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+            });
+        var dica = nao > 0 ? $"{Plural(nao, "mensagem nova", "mensagens novas")} de {f.Nome}" : $"Mensagens com {f.Nome}";
+        var b = new Button { Template = BotaoSoConteudo(), Cursor = System.Windows.Input.Cursors.Hand, ToolTip = dica, Content = conteudo, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
+        System.Windows.Automation.AutomationProperties.SetName(b, dica);
+        b.Click += (_, e) => { e.Handled = true; AbrirMensagens(f); };
+        return b;
     }
 
     private void MostrarErro(string texto)
@@ -101,6 +157,9 @@ public partial class FornecedoresView : UserControl
     /// <summary>Pedidos do fornecedor, do mais novo para o mais antigo.</summary>
     private IEnumerable<Pedido> PedidosDe(Fornecedor f) =>
         _pedidos.Where(p => p.FornecedorId == f.Id).OrderByDescending(p => p.Data).ThenByDescending(p => p.Id);
+
+    /// <summary>Tem algum pedido, mesmo antigo (aí só pode desativar, para o histórico continuar guardado).</summary>
+    private bool TemPedidos(Fornecedor f) => _resumoPedidos.ContainsKey(f.Id) || PedidosDe(f).Any();
 
     private IEnumerable<Produto> ProdutosDe(Fornecedor f) => _produtos.Where(f.Fornece);
 
@@ -136,6 +195,8 @@ public partial class FornecedoresView : UserControl
         var atrasados = _pedidos.Count(p => p.Atrasado);
         var comFalta = ativos.Count(f => ProdutosDe(f).Any(p => p.SemEstoque || p.EstoqueBaixo));
 
+        foreach (var kpi in Kpis.Children.OfType<Button>())
+            kpi.Tag = kpi.Uid == _filtro ? "ativo" : null;
         KpiTotal.Text = ativos.Count.ToString(PtBr);
         KpiPendentes.Text = pendentes.ToString(PtBr);
         KpiAtrasados.Text = atrasados.ToString(PtBr);
@@ -204,75 +265,174 @@ public partial class FornecedoresView : UserControl
         }
     }
 
+    /// <summary>Quantos cartões cabem por linha e a largura de cada um (cartões de ~300 px, 18 px entre eles).</summary>
+    private (int Colunas, double Largura, double Total) Grade()
+    {
+        var total = AreaLista.ActualWidth > 0 ? AreaLista.ActualWidth : Math.Max(ActualWidth, 640);
+        var colunas = Math.Max(1, (int)((total + 18) / 318));
+        return (colunas, Math.Floor((total + 18) / colunas) - 18, total);
+    }
+
+    /// <summary>
+    /// Fornecedor em cartão de visita (igual ao site): faixa verde no topo, nome, carimbo da situação, dados,
+    /// produtos com os sinais de estoque e o pé com WhatsApp e "Mais". Aberto, ocupa a linha inteira com os detalhes.
+    /// </summary>
     private FrameworkElement LinhaFornecedor(Fornecedor f)
     {
         var aberto = _abertos.Contains(f.Id);
-        var grade = new Grid { MinHeight = 58 };
-        AjustarColunas(grade);
+        var (_, largura, total) = Grade();
+        var corpo = new StackPanel();
 
-        var seta = new Button
+        // Topo: nome, e-mail e carimbo
+        var topo = new DockPanel { Margin = new Thickness(18, 14, 14, 8), Background = Brushes.Transparent, Cursor = System.Windows.Input.Cursors.Hand };
+        var carimbo = Carimbo(f);
+        DockPanel.SetDock(carimbo, Dock.Right);
+        topo.Children.Add(carimbo);
+        var quem = new StackPanel { Margin = new Thickness(0, 0, 10, 0) };
+        quem.Children.Add(new TextBlock { Text = f.Nome, FontSize = 20, FontWeight = FontWeights.Bold, Foreground = Recurso<Brush>(f.Ativo ? "Tinta" : "Suave"), LineHeight = 23 });
+        if (!string.IsNullOrWhiteSpace(f.Email))
+            quem.Children.Add(new TextBlock { Text = f.Email, FontSize = 14, Foreground = Recurso<Brush>("Suave"), TextTrimming = TextTrimming.CharacterEllipsis, TextWrapping = TextWrapping.NoWrap, Margin = new Thickness(0, 2, 0, 0) });
+        topo.Children.Add(quem);
+        topo.MouseLeftButtonUp += (_, _) => Alternar(f.Id);
+        corpo.Children.Add(topo);
+
+        // Dados: telefone, último pedido e prazo
+        DateOnly? ultimo = _resumoPedidos.TryGetValue(f.Id, out var r) ? r.Ultimo : PedidosDe(f).FirstOrDefault()?.Data;
+        var dados = new Grid { Margin = new Thickness(18, 0, 18, 12) };
+        for (var i = 0; i < 3; i++) dados.ColumnDefinitions.Add(new ColumnDefinition { Width = i == 2 ? new GridLength(1, GridUnitType.Star) : GridLength.Auto });
+        Colocar(dados, Dado("TELEFONE", f.Telefone), 0);
+        Colocar(dados, Dado("ÚLTIMO PEDIDO", ultimo?.ToString("dd/MM/yyyy", PtBr) ?? "—"), 1);
+        Colocar(dados, Dado("ENTREGA", f.ListaDiasEntrega.Count > 0 ? f.TextoDiasEntrega : Plural(f.Prazo, "dia", "dias")), 2);
+        corpo.Children.Add(dados);
+
+        // Produtos e sinais de estoque (borda tracejada em cima)
+        var produtos = new StackPanel { Margin = new Thickness(18, 10, 18, 14) };
+        produtos.Children.Add(new TextBlock { Text = "O QUE ENTREGA", FontSize = 11, FontWeight = FontWeights.Bold, Foreground = Recurso<Brush>("Suave"), Margin = new Thickness(0, 0, 0, 4) });
+        produtos.Children.Add(Produtos(f));
+        corpo.Children.Add(Tracejada());
+        corpo.Children.Add(produtos);
+
+        // Pé: WhatsApp e "Mais"
+        var pe = new DockPanel { Background = Recurso<Brush>("Fundo"), Margin = new Thickness(0), LastChildFill = false };
+        var mais = new Button
         {
-            VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Cursor = System.Windows.Input.Cursors.Hand,
-            ToolTip = aberto ? "Fechar detalhes" : "Ver produtos, pedidos e opções",
-            Template = BotaoSoConteudo(),
-            Content = new ContentControl
+            Style = Recurso<Style>("BotaoFantasma"), Height = 36, FontSize = 14, Padding = new Thickness(12, 0, 12, 0), Margin = new Thickness(0, 8, 12, 8),
+            Content = Rotulo(aberto ? "Fechar" : "Mais", aberto ? "IconeSetaBaixo" : "IconeSetaDireita", "Tinta")
+        };
+        System.Windows.Automation.AutomationProperties.SetName(mais, aberto ? $"Fechar detalhes de {f.Nome}" : $"Ver produtos, pedidos e opções de {f.Nome}");
+        mais.Click += (_, _) => Alternar(f.Id);
+        DockPanel.SetDock(mais, Dock.Right);
+        pe.Children.Add(mais);
+        if (_mensagens is { TemMensagens: true })
+        {
+            var mensagens = BotaoMensagens(f);
+            DockPanel.SetDock(mensagens, Dock.Right);
+            pe.Children.Add(mensagens);
+        }
+        var zap = new Button
+        {
+            Style = Recurso<Style>("BotaoLink"), Margin = new Thickness(18, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center,
+            Content = "WhatsApp", ToolTip = $"Abrir conversa com {f.Nome} no WhatsApp"
+        };
+        zap.Click += (_, _) => AbrirWhatsapp(f, MensagemPedido.Saudacao(f, _servico!.Usuario));
+        var zapLinha = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        zapLinha.Children.Add(new ContentControl { Style = Recurso<Style>("Icone"), Tag = Recurso<Geometry>("IconeMensagem"), Foreground = Recurso<Brush>("Verde700"), Width = 18, Margin = new Thickness(18, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center });
+        zap.Margin = new Thickness(0);
+        zapLinha.Children.Add(zap);
+        foreach (var b in BotoesContato(f).Children.OfType<Button>().Skip(1).ToList())
+        {
+            ((Panel)b.Parent).Children.Remove(b);
+            b.Margin = new Thickness(8, 0, 0, 0);
+            zapLinha.Children.Add(b);
+        }
+        pe.Children.Add(zapLinha);
+        corpo.Children.Add(new Border { BorderBrush = Recurso<Brush>("Linha"), BorderThickness = new Thickness(0, 1, 0, 0), Child = pe });
+
+        // Aberto: detalhes embaixo, com a linha preta
+        if (aberto)
+            corpo.Children.Add(new Border { BorderBrush = Recurso<Brush>("Tinta"), BorderThickness = new Thickness(0, 2, 0, 0), Padding = new Thickness(6, 16, 6, 4), Child = Detalhes(f) });
+
+        var cartao = new Border
+        {
+            Width = aberto ? total : largura,
+            Margin = new Thickness(0, 0, 18, 18),
+            Background = f.Ativo ? Recurso<Brush>("Cartao") : (Brush)Riscado(),
+            BorderBrush = Recurso<Brush>("Linha"),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(4),
+            Effect = Recurso<System.Windows.Media.Effects.Effect>("SombraCartao"),
+            Child = new StackPanel
             {
-                Style = Recurso<Style>("Icone"),
-                Tag = Recurso<Geometry>(aberto ? "IconeSetaBaixo" : "IconeSetaDireita"),
-                Foreground = Recurso<Brush>(aberto ? "Verde700" : "Suave"),
-                Width = 18
+                Children =
+                {
+                    new Border { Height = 6, Background = Recurso<Brush>(f.Ativo ? "Verde700" : "LinhaForte"), CornerRadius = new CornerRadius(4, 4, 0, 0) },
+                    corpo
+                }
             }
         };
-        System.Windows.Automation.AutomationProperties.SetName(seta, aberto ? $"Fechar detalhes de {f.Nome}" : $"Abrir detalhes de {f.Nome}");
-        seta.Click += (_, _) => Alternar(f.Id);
-        Colocar(grade, seta, 5);
+        return cartao;
+    }
 
-        // Fornecedor (no modo compacto também o telefone e os produtos)
-        var nome = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 8, 12, 8) };
-        nome.Children.Add(new TextBlock { Text = f.Nome, FontWeight = FontWeights.SemiBold });
-        if (!string.IsNullOrWhiteSpace(f.Email) && !_compacta)
-            nome.Children.Add(new TextBlock { Text = f.Email, FontSize = 13, Foreground = Recurso<Brush>("Suave"), TextTrimming = TextTrimming.CharacterEllipsis, TextWrapping = TextWrapping.NoWrap });
-        if (_compacta)
+    /// <summary>Carimbo torto com a situação (Em dia, Pendente, Atrasado, Sem pedidos, Desativado).</summary>
+    private Border Carimbo(Fornecedor f)
+    {
+        var (texto, cor, fundo) = !f.Ativo ? ("Desativado", "Suave", (string?)null) : Situacao(f) switch
         {
-            nome.Children.Add(new TextBlock { Text = f.Telefone, FontSize = 13, Foreground = Recurso<Brush>("Suave") });
-            nome.Children.Add(Produtos(f));
-        }
-        Colocar(grade, nome, 0);
-
-        if (!_compacta)
-        {
-            var contato = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
-            contato.Children.Add(new TextBlock { Text = f.Telefone, FontSize = 14 });
-            contato.Children.Add(BotoesContato(f));
-            Colocar(grade, contato, 1);
-            Colocar(grade, Produtos(f), 2);
-
-            var ultimo = PedidosDe(f).FirstOrDefault();
-            Colocar(grade, Celula(ultimo is null ? "—" : ultimo.Data.ToString("dd/MM/yyyy", PtBr), suave: ultimo is null), 3);
-        }
-        Colocar(grade, PilulaSituacao(f), 4);
-
-        var linha = new Border { Background = Brushes.Transparent, Cursor = System.Windows.Input.Cursors.Hand, Child = grade };
-        linha.MouseLeftButtonUp += (_, e) =>
-        {
-            // Clicar nos botões de contato não abre o drop-down
-            if (e.OriginalSource is DependencyObject o && Ancestral<Button>(o) is null) Alternar(f.Id);
+            SituacaoFornecedor.Atrasado => ("Atrasado", "Vermelho600", "Vermelho50"),
+            SituacaoFornecedor.Pendente => ("Pendente", "Ambar700", null),
+            SituacaoFornecedor.EmDia => ("Em dia", "Verde700", null),
+            _ => ("Sem pedidos", "Suave", null)
         };
+        return CarimboTexto(texto, cor, fundo, 11);
+    }
 
-        var bloco = new StackPanel();
-        bloco.Children.Add(linha);
-        if (aberto) bloco.Children.Add(Detalhes(f));
+    private Border CarimboTexto(string texto, string cor, string? fundo, double tamanho) => new()
+    {
+        BorderBrush = Recurso<Brush>(cor),
+        BorderThickness = new Thickness(2),
+        CornerRadius = new CornerRadius(3),
+        Background = fundo is null ? Brushes.Transparent : Recurso<Brush>(fundo),
+        Padding = new Thickness(8, 2, 8, 2),
+        VerticalAlignment = VerticalAlignment.Top,
+        RenderTransformOrigin = new Point(0.5, 0.5),
+        RenderTransform = new RotateTransform(-4),
+        Child = new TextBlock { Text = texto.ToUpperInvariant(), FontSize = tamanho, FontWeight = FontWeights.ExtraBold, Foreground = Recurso<Brush>(cor), TextWrapping = TextWrapping.NoWrap }
+    };
 
-        return new Border
-        {
-            BorderBrush = Recurso<Brush>("Linha"),
-            BorderThickness = new Thickness(0, 0, 0, 1),
-            Background = aberto ? Recurso<Brush>("Fundo") : Brushes.Transparent,
-            Opacity = f.Ativo ? 1 : 0.75,
-            Child = bloco
-        };
+    /// <summary>Rótulo pequeno em maiúsculas com o valor embaixo (dados do cartão).</summary>
+    private StackPanel Dado(string rotulo, string valor)
+    {
+        var bloco = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
+        bloco.Children.Add(new TextBlock { Text = rotulo, FontSize = 11, FontWeight = FontWeights.Bold, Foreground = Recurso<Brush>("Suave"), TextWrapping = TextWrapping.NoWrap });
+        bloco.Children.Add(new TextBlock { Text = valor, FontSize = 14, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis });
+        return bloco;
+    }
+
+    private StackPanel Rotulo(string texto, string icone, string cor)
+    {
+        var conteudo = new StackPanel { Orientation = Orientation.Horizontal };
+        conteudo.Children.Add(new TextBlock { Text = texto, VerticalAlignment = VerticalAlignment.Center });
+        conteudo.Children.Add(new ContentControl { Style = Recurso<Style>("Icone"), Tag = Recurso<Geometry>(icone), Foreground = Recurso<Brush>(cor), Width = 15, Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+        return conteudo;
+    }
+
+    /// <summary>Linha tracejada de lado a lado.</summary>
+    private FrameworkElement Tracejada() => new System.Windows.Shapes.Line
+    {
+        X1 = 0, X2 = 1, Stretch = Stretch.Fill, Height = 1, Stroke = Recurso<Brush>("LinhaForte"), StrokeThickness = 1, StrokeDashArray = [3, 3]
+    };
+
+    /// <summary>Fundo listrado de fornecedor desativado.</summary>
+    private Brush Riscado()
+    {
+        var pincel = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(24, 24), MappingMode = BrushMappingMode.Absolute, SpreadMethod = GradientSpreadMethod.Repeat };
+        var cartao = ((SolidColorBrush)Recurso<Brush>("Cartao")).Color;
+        var listra = Color.FromRgb(0xF4, 0xF6, 0xF8);
+        pincel.GradientStops.Add(new GradientStop(cartao, 0));
+        pincel.GradientStops.Add(new GradientStop(cartao, 0.5));
+        pincel.GradientStops.Add(new GradientStop(listra, 0.5));
+        pincel.GradientStops.Add(new GradientStop(listra, 1));
+        return pincel;
     }
 
     /// <summary>"Grãos, Mercearia" e, embaixo, os sinais de estoque dos produtos do fornecedor.</summary>
@@ -391,7 +551,7 @@ public partial class FornecedoresView : UserControl
         acoes.Children.Add(BotaoPequeno("Editar", "IconeFerramenta", "Verde700", () => AbrirFornecedor(f)));
         if (!f.Ativo)
             acoes.Children.Add(BotaoPequeno("Reativar", "IconeCheck", "Verde700", async () => await AtivarAsync(f, true)));
-        else if (PedidosDe(f).Any())
+        else if (TemPedidos(f))
             acoes.Children.Add(BotaoPequeno("Desativar", "IconeLixeira", "Vermelho600", () => ConfirmarDesativar(f)));
         else
             acoes.Children.Add(BotaoPequeno("Excluir", "IconeLixeira", "Vermelho600", () => ConfirmarExclusao(f)));
@@ -405,6 +565,11 @@ public partial class FornecedoresView : UserControl
         dados.Children.Add(Detalhe("E-mail", string.IsNullOrWhiteSpace(f.Email) ? "—" : f.Email));
         dados.Children.Add(Detalhe("Prazo padrão de entrega", f.PrazoEntregaDias is null ? $"{Fornecedor.PrazoPadrao} dias (padrão)" : Plural(f.Prazo, "dia", "dias")));
         dados.Children.Add(Detalhe("Pedidos por", f.PrefereEmail ? "E-mail" : "WhatsApp"));
+        if (_servico is { TemAjustes: true })
+        {
+            dados.Children.Add(Detalhe("Entrega", f.TextoDiasEntrega));
+            dados.Children.Add(Detalhe("Pedido mínimo", f.PedidoMinimo is { } minimo ? minimo.ToString("C", PtBr) : "sem mínimo"));
+        }
         painel.Children.Add(dados);
         if (!string.IsNullOrWhiteSpace(f.Observacao))
             painel.Children.Add(new TextBlock { Text = f.Observacao, FontSize = 14, Foreground = Recurso<Brush>("Suave"), Margin = new Thickness(0, 0, 0, 10) });
@@ -455,7 +620,8 @@ public partial class FornecedoresView : UserControl
                 qtd.Children.Add(new ContentControl { Style = Recurso<Style>("Icone"), Tag = Recurso<Geometry>("IconeTriangulo"), Foreground = Recurso<Brush>("Ambar700"), Width = 15, Margin = new Thickness(0, 0, 6, 0) });
             qtd.Children.Add(new TextBlock
             {
-                Text = $"{p.Formatar(p.Quantidade)} (mín. {p.Numero(p.EstoqueMinimo)}) · entrega em {Plural(f.PrazoDe(p), "dia", "dias")}",
+                Text = $"{p.Formatar(p.Quantidade)} (mín. {p.Numero(p.EstoqueMinimo)}) · entrega em {Plural(f.PrazoDe(p), "dia", "dias")}" +
+                       (p.Vinculos.FirstOrDefault(v => v.FornecedorId == f.Id)?.UltimoCusto is { } ultimo ? $" · último custo {ultimo.ToString("C", PtBr)}" : ""),
                 FontSize = 14,
                 FontWeight = alerta ? FontWeights.Bold : FontWeights.Normal,
                 Foreground = Recurso<Brush>(alerta ? "Vermelho600" : "Tinta")
@@ -495,74 +661,162 @@ public partial class FornecedoresView : UserControl
         return bloco;
     }
 
-    /// <summary>Histórico de pedidos (igual ao do site): data, itens, entrega, situação e ações.</summary>
+    /// <summary>Histórico de pedidos como recibos (igual ao site): data, carimbo, itens, entrega e ações.</summary>
     private FrameworkElement Historico(Fornecedor f)
     {
         var bloco = new StackPanel();
-        var pedidos = PedidosDe(f).ToList();
-        bloco.Children.Add(TituloSecao($"Histórico de pedidos ({pedidos.Count})"));
-        if (pedidos.Count == 0)
+        var completo = _historicoCompleto.GetValueOrDefault(f.Id);
+        var pedidos = completo ?? PedidosDe(f).ToList();
+        var total = completo?.Count ?? (_resumoPedidos.TryGetValue(f.Id, out var r) ? r.Total : pedidos.Count);
+        bloco.Children.Add(TituloSecao($"Histórico de pedidos ({total})"));
+        if (total == 0)
         {
             bloco.Children.Add(new TextBlock { Text = "Nenhum pedido feito para este fornecedor ainda.", FontSize = 14, Foreground = Recurso<Brush>("Suave") });
             return bloco;
         }
 
-        var todos = _todoHistorico.Contains(f.Id);
-        foreach (var p in todos ? pedidos : pedidos.Take(5))
+        var recibos = new WrapPanel { Margin = new Thickness(0, 0, -14, 0) };
+        if (completo is not null)
         {
-            var linha = new DockPanel();
-            var caixa = new Border
+            // Histórico inteiro: em páginas de 6 recibos (ou o tamanho escolhido)
+            if (!_paginasHistorico.TryGetValue(f.Id, out var paginas))
             {
-                Background = Brushes.White, BorderBrush = Recurso<Brush>("Linha"), BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10), Padding = new Thickness(16, 10, 12, 10), Margin = new Thickness(0, 0, 0, 8),
-                Opacity = p.Cancelado ? 0.65 : 1, Child = linha
-            };
-
-            var acoes = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-            if (p.Pendente)
-            {
-                acoes.Children.Add(Link("Registrar entrega", () => AbrirEntrega(p)));
-                acoes.Children.Add(Link("Reenviar", () => AbrirEnvio(f, p)));
-                acoes.Children.Add(Link("Cancelar", () => ConfirmarCancelamento(f, p), perigo: true));
+                paginas = new Paginacao("historico-pedidos", [6, 12, 24, 48], 6);
+                paginas.Mudou += () => { Mostrar(); recibos.BringIntoView(); };
+                _paginasHistorico[f.Id] = paginas;
             }
-            DockPanel.SetDock(acoes, Dock.Right);
-            linha.Children.Add(acoes);
-
-            var (sit, fundo, cor) = p.Entregue ? ("Entregue", "Verde50", "Verde700")
-                : p.Cancelado ? ("Cancelado", "Fundo", "Suave")
-                : p.Atrasado ? ("Atrasado", "Vermelho50", "Vermelho600")
-                : ("Aguardando", "Azul50", "Azul600");
-            var info = new StackPanel();
-            var topo = new WrapPanel();
-            topo.Children.Add(new TextBlock { Text = $"Pedido de {p.Data:dd/MM/yyyy}", FontSize = 14, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center });
-            topo.Children.Add(Etiqueta(sit, fundo, cor));
-            var entrega = p.Entregue ? $"Entregue em {p.EntregueEm:dd/MM/yyyy}"
-                : p.Cancelado ? "Cancelado"
-                : p.Previsao is null ? "Sem previsão de entrega" : $"Previsto para {p.Previsao:dd/MM/yyyy}";
-            topo.Children.Add(new TextBlock { Text = entrega, FontSize = 13, Foreground = Recurso<Brush>("Suave"), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
-            info.Children.Add(topo);
-            info.Children.Add(new TextBlock { Text = p.DescreverItens(), FontSize = 14, Margin = new Thickness(0, 4, 0, 0) });
-            // Na entrega, avisa o que veio diferente do pedido
-            var diferentes = p.Itens.Where(i => i.QuantidadeRecebida is { } r && r != i.Quantidade)
-                .Select(i => $"{i.NomeProduto}: chegou {i.QuantidadeCurta(i.QuantidadeRecebida!.Value)}").ToList();
-            if (p.Entregue && diferentes.Count > 0)
-                info.Children.Add(new TextBlock { Text = "Diferente do pedido · " + string.Join(" · ", diferentes), FontSize = 13, Foreground = Recurso<Brush>("Ambar700"), Margin = new Thickness(0, 2, 0, 0) });
-            if (!string.IsNullOrWhiteSpace(p.Observacao))
-                info.Children.Add(new TextBlock { Text = p.Observacao, FontSize = 13, Foreground = Recurso<Brush>("Suave"), Margin = new Thickness(0, 2, 0, 0) });
-            linha.Children.Add(info);
-            bloco.Children.Add(caixa);
-        }
-        if (pedidos.Count > 5)
-            bloco.Children.Add(Link(todos ? "Mostrar só os últimos 5" : $"Ver os {pedidos.Count} pedidos", () =>
+            foreach (var p in paginas.Recortar(completo))
+                recibos.Children.Add(Recibo(f, p));
+            bloco.Children.Add(recibos);
+            bloco.Children.Add(paginas.Barra());
+            bloco.Children.Add(Link("Mostrar só os últimos pedidos", () =>
             {
-                if (!_todoHistorico.Remove(f.Id)) _todoHistorico.Add(f.Id);
+                _historicoCompleto.Remove(f.Id);
+                _paginasHistorico.Remove(f.Id);
                 Mostrar();
-            }, margem: new Thickness(0, 0, 0, 0)));
+            }, margem: new Thickness(0, 8, 0, 0)));
+            return bloco;
+        }
+
+        foreach (var p in pedidos.Take(6))
+            recibos.Children.Add(Recibo(f, p));
+        bloco.Children.Add(recibos);
+        if (pedidos.Count == 0)
+            bloco.Children.Add(new TextBlock { Text = $"Nenhum pedido nos últimos {FornecedorService.DiasRecentes} dias.", FontSize = 14, Foreground = Recurso<Brush>("Suave") });
+        if (total > Math.Min(pedidos.Count, 6))
+            bloco.Children.Add(Link($"Ver histórico completo ({total} pedidos)", async () => await AbrirHistoricoAsync(f),
+                margem: new Thickness(0, 0, 0, 0)));
         return bloco;
     }
 
-    private TextBlock TituloSecao(string texto) =>
-        new() { Text = texto, FontSize = 15, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 8) };
+    /// <summary>Lê todos os pedidos do fornecedor (só agora, para a tela abrir rápido) e mostra em páginas.</summary>
+    private async Task AbrirHistoricoAsync(Fornecedor f)
+    {
+        try
+        {
+            _historicoCompleto[f.Id] = await _servico!.PedidosDoFornecedorAsync(f.Id);
+        }
+        catch (ConexaoException ex)
+        {
+            _area.MostrarToast(ex.Message);
+            return;
+        }
+        Mostrar();
+    }
+
+    /// <summary>Um pedido como recibo de papel: topo com data e carimbo, itens entre linhas tracejadas, entrega e ações.</summary>
+    private Border Recibo(Fornecedor f, Pedido p)
+    {
+        var corpo = new StackPanel();
+        var (sit, cor, fundo) = p.Entregue ? ("Entregue", "Verde700", (string?)null)
+            : p.Cancelado ? ("Cancelado", "Suave", null)
+            : p.Atrasado ? ("Atrasado", "Vermelho600", "Vermelho50")
+            : ("Aguardando", "Ambar700", null);
+        var topo = new DockPanel { Margin = new Thickness(0, 0, 0, 8) };
+        var carimbo = CarimboTexto(sit, cor, fundo, 10);
+        DockPanel.SetDock(carimbo, Dock.Right);
+        topo.Children.Add(carimbo);
+        topo.Children.Add(new TextBlock { Text = $"Pedido de {p.Data:dd/MM/yyyy}", FontSize = 14, FontWeight = FontWeights.Bold, VerticalAlignment = VerticalAlignment.Center });
+        corpo.Children.Add(topo);
+
+        corpo.Children.Add(Tracejada());
+        var itens = new StackPanel { Margin = new Thickness(0, 4, 0, 4) };
+        foreach (var i in p.Itens)
+        {
+            var linha = new DockPanel { Margin = new Thickness(0, 1, 0, 1) };
+            var qtd = new TextBlock { Text = i.QuantidadeCurta(i.QuantidadeRecebida ?? i.Quantidade), FontSize = 13.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(10, 0, 0, 0) };
+            DockPanel.SetDock(qtd, Dock.Right);
+            linha.Children.Add(qtd);
+            var diferente = i.QuantidadeRecebida is { } r && r != i.Quantidade;
+            linha.Children.Add(new TextBlock
+            {
+                Text = i.NomeProduto + (diferente ? $" (pedido {i.QuantidadeCurta(i.Quantidade)}{(i.NomeMotivo is { } m ? ", " + m.ToLowerInvariant() : "")})" : ""),
+                FontSize = 13.5, Foreground = Recurso<Brush>(diferente ? "Ambar700" : "Tinta")
+            });
+            itens.Children.Add(linha);
+        }
+        corpo.Children.Add(itens);
+        corpo.Children.Add(Tracejada());
+
+        if (p.Total is { } total)
+        {
+            var linhaTotal = new DockPanel { Margin = new Thickness(0, 4, 0, 0) };
+            var valor = new TextBlock { Text = total.ToString("C", PtBr), FontWeight = FontWeights.Bold, FontSize = 14 };
+            DockPanel.SetDock(valor, Dock.Right);
+            linhaTotal.Children.Add(valor);
+            linhaTotal.Children.Add(new TextBlock { Text = "Total", FontSize = 13.5, FontWeight = FontWeights.SemiBold });
+            corpo.Children.Add(linhaTotal);
+        }
+        var entrega = p.Entregue ? $"Entregue em {p.EntregueEm:dd/MM/yyyy}" + (p.NumeroNota is null ? "" : $" · nota {p.NumeroNota}")
+            : p.Cancelado ? "Cancelado"
+            : p.Previsao is null ? "Sem previsão de entrega" : $"Previsto para {p.Previsao:dd/MM/yyyy}";
+        corpo.Children.Add(new TextBlock { Text = entrega, FontSize = 13, Foreground = Recurso<Brush>("Suave"), Margin = new Thickness(0, 6, 0, 0) });
+        if (!string.IsNullOrWhiteSpace(p.Observacao))
+            corpo.Children.Add(new TextBlock { Text = p.Observacao, FontSize = 13, FontStyle = FontStyles.Italic, Foreground = Recurso<Brush>("Suave"), Margin = new Thickness(0, 2, 0, 0) });
+
+        if (p.Pendente)
+        {
+            var acoes = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
+            acoes.Children.Add(BotaoRecibo("Registrar entrega", () => AbrirEntrega(p)));
+            acoes.Children.Add(BotaoRecibo("Editar", () => AbrirEdicao(f, p)));
+            acoes.Children.Add(BotaoRecibo("Reenviar", () => AbrirEnvio(f, p)));
+            acoes.Children.Add(BotaoRecibo("Cancelar", () => ConfirmarCancelamento(f, p), perigo: true));
+            corpo.Children.Add(acoes);
+        }
+
+        return new Border
+        {
+            Width = 260,
+            Margin = new Thickness(0, 0, 14, 14),
+            Background = Brushes.White,
+            BorderBrush = Recurso<Brush>("Linha"),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(2),
+            Padding = new Thickness(14, 12, 14, 12),
+            Opacity = p.Cancelado ? 0.7 : 1,
+            Child = corpo
+        };
+    }
+
+    /// <summary>Botãozinho de ação do recibo (igual a .link-btn do site).</summary>
+    private Button BotaoRecibo(string texto, Action acao, bool perigo = false)
+    {
+        var botao = new Button
+        {
+            Style = Recurso<Style>("BotaoFantasma"), Height = 32, FontSize = 13, Padding = new Thickness(10, 0, 10, 0),
+            Margin = new Thickness(0, 0, 6, 6), Content = texto
+        };
+        if (perigo) botao.Foreground = Recurso<Brush>("Vermelho600");
+        botao.Click += (_, e) => { e.Handled = true; acao(); };
+        return botao;
+    }
+
+    private FrameworkElement TituloSecao(string texto) => new Border
+    {
+        BorderBrush = Recurso<Brush>("Tinta"), BorderThickness = new Thickness(0, 0, 0, 2), HorizontalAlignment = HorizontalAlignment.Left,
+        Margin = new Thickness(0, 6, 0, 10), Padding = new Thickness(0, 0, 0, 3),
+        Child = new TextBlock { Text = texto.ToUpperInvariant(), FontSize = 12, FontWeight = FontWeights.Bold }
+    };
 
     private void Alternar(long id)
     {
@@ -596,6 +850,8 @@ public partial class FornecedoresView : UserControl
             texto.Inlines.Add(new System.Windows.Documents.Run(nomes.Count == 1 ? " precisa de reposição. Criar pedido para " : " precisam de reposição. Criar pedido para "));
             texto.Inlines.Add(Negrito(f.Nome));
             texto.Inlines.Add(new System.Windows.Documents.Run("?"));
+            if (f.UltimoDiaHoje() is { } chega)
+                texto.Inlines.Add(new System.Windows.Documents.Run($" Hoje é o último dia para pegar a entrega de {Fornecedor.NomesDias[(int)chega.DayOfWeek]}, {chega:dd/MM}.") { FontWeight = FontWeights.SemiBold });
 
             var acoes = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
             acoes.Children.Add(BotaoPequeno("Criar pedido", "IconeEnviar", "Verde700", () => AbrirPedido(f, ParaPedir(f)), primario: true));
@@ -666,6 +922,17 @@ public partial class FornecedoresView : UserControl
         AbrirPedido(null, []);
     }
 
+    /// <summary>Aviso do Painel "fornecedor respondeu": abre a conversa quando os dados chegarem.</summary>
+    public void MensagensDe(long fornecedorId, long? pedidoId)
+    {
+        void Abrir()
+        {
+            if (_fornecedores.FirstOrDefault(f => f.Id == fornecedorId) is { } f) AbrirMensagens(f, pedidoId);
+        }
+        if (!_dadosProntos) _depoisDeCarregar = Abrir;
+        else Abrir();
+    }
+
     private bool Pronto()
     {
         if (_servico is null || _estoque is null) { _area.MostrarToast("Sistema sem configuração do banco de dados."); return false; }
@@ -684,15 +951,28 @@ public partial class FornecedoresView : UserControl
         if (!Pronto()) return;
         if (!Ativos.Any()) { _area.MostrarToast("Cadastre um fornecedor antes de criar pedidos."); return; }
         _area.AbrirJanela(new PedidoJanela(_area, _servico!, Ativos.ToList(), _produtos, f, itens, JaPedido,
-            async (mensagem, fornecedor, texto) =>
+            async (mensagem, fornecedor, texto, pedidoId) =>
             {
                 await RecarregarAsync(mensagem);
-                _area.AbrirJanela(new EnvioPedidoJanela(_area, fornecedor, texto, "Pedido criado"));
+                _area.AbrirJanela(new EnvioPedidoJanela(_area, fornecedor, texto, "Pedido criado", pedidoId, _mensagens));
             }));
     }
 
+    /// <summary>Altera um pedido pendente e oferece reenviar a mensagem com as mudanças.</summary>
+    private void AbrirEdicao(Fornecedor f, Pedido p)
+    {
+        if (!Pronto()) return;
+        _area.AbrirJanela(new PedidoJanela(_area, _servico!, Ativos.Append(f).DistinctBy(x => x.Id).ToList(), _produtos, f, [],
+            produto => _pedidos.Any(o => o.Id != p.Id && o.Pendente && o.Itens.Any(i => i.ProdutoId == produto.Id)),
+            async (mensagem, fornecedor, texto, pedidoId) =>
+            {
+                await RecarregarAsync(mensagem);
+                _area.AbrirJanela(new EnvioPedidoJanela(_area, fornecedor, $"Atualização do pedido de {p.Data:dd/MM/yyyy} (substitui o anterior):\n\n" + texto, "Pedido alterado", pedidoId, _mensagens));
+            }, p));
+    }
+
     private void AbrirEnvio(Fornecedor f, Pedido p) =>
-        _area.AbrirJanela(new EnvioPedidoJanela(_area, f, MensagemDoPedido(f, p, _produtos, _servico!.Usuario), "Reenviar pedido"));
+        _area.AbrirJanela(new EnvioPedidoJanela(_area, f, MensagemDoPedido(f, p, _produtos, _servico!.Usuario), "Reenviar pedido", p.Id, _mensagens));
 
     /// <summary>Mensagem de um pedido já gravado (para reenviar).</summary>
     public static string MensagemDoPedido(Fornecedor f, Pedido p, IReadOnlyList<Produto> produtos, string usuario) =>
@@ -702,7 +982,7 @@ public partial class FornecedoresView : UserControl
     private void AbrirEntrega(Pedido p)
     {
         if (!Pronto()) return;
-        _area.AbrirJanela(new EntregaJanela(_area, _servico!, p, _fornecedores.FirstOrDefault(f => f.Id == p.FornecedorId)?.Nome ?? "", _produtos, RecarregarAsync));
+        _area.AbrirJanela(new EntregaJanela(_area, _servico!, p, _fornecedores.FirstOrDefault(f => f.Id == p.FornecedorId), _produtos, RecarregarAsync));
     }
 
     private void ConfirmarCancelamento(Fornecedor f, Pedido p) =>
@@ -770,9 +1050,11 @@ public partial class FornecedoresView : UserControl
 
     private void AoRedimensionar(object sender, SizeChangedEventArgs e)
     {
-        var lado = Math.Max(96, Math.Min(140, (e.NewSize.Width - 4 * 12) / 4));
-        foreach (var kpi in Kpis.Children.OfType<Button>())
-            kpi.Width = kpi.Height = lado;
+        // Janela estreita: os contadores da faixa vão para duas linhas
+        Kpis.Rows = e.NewSize.Width < 600 ? 2 : 1;
+        // Cartões: refaz quando a largura muda (a largura de cada cartão acompanha a janela)
+        if (_carregou && Math.Abs(e.NewSize.Width - e.PreviousSize.Width) > 1)
+            Dispatcher.BeginInvoke(Mostrar, System.Windows.Threading.DispatcherPriority.Background);
         var compacta = e.NewSize.Width < 760;
         if (compacta == _compacta) return;
         _compacta = compacta;

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="540">
     <!-- Cadastro / edição de produto (igual ao modal-produto de estoque.html) -->
-    <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24,24,24,20" Effect="{StaticResource SombraJanela}">
+    <Border Style="{StaticResource Janela}" Padding="24,24,24,20">
         <StackPanel>
             <DockPanel Margin="0,0,0,18">
                 <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource LinkSuave}" FontSize="24" FontWeight="Normal"
@@ -12,7 +12,7 @@
             </DockPanel>
 
             <!-- Dados achados pelo código de barras num banco aberto (Open Food Facts) -->
-            <Border x:Name="AvisoEncontrado" Style="{StaticResource Aviso}" Background="{StaticResource Verde50}" BorderBrush="#BFE0CB" Visibility="Collapsed">
+            <Border x:Name="AvisoEncontrado" Style="{StaticResource Aviso}" Background="{StaticResource Verde50}" BorderBrush="{StaticResource Verde700}" Visibility="Collapsed">
                 <DockPanel>
                     <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCodigoBarras}" Foreground="{StaticResource Verde700}"
                                     Width="18" VerticalAlignment="Top" Margin="0,1,10,0" />
@@ -20,7 +20,7 @@
                 </DockPanel>
             </Border>
 
-            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="#F2C4BE" Visibility="Collapsed">
+            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="{StaticResource Vermelho600}" Visibility="Collapsed">
                 <TextBlock x:Name="AvisoErroTexto" Foreground="{StaticResource Vermelho600}" FontSize="14" />
             </Border>
 
@@ -57,6 +57,12 @@
                 </Grid>
                 <TextBlock FontSize="12" Style="{StaticResource TextoSuave}" Margin="0,6,0,0"
                            Text="Sem fornecedor escolhido, o produto é de quem entrega a categoria dele. Prazo: quantos dias o fornecedor leva para entregar este produto (vazio = prazo padrão do fornecedor). Entra na previsão de entrega do pedido." />
+                <StackPanel x:Name="CampoOutros" Margin="0,12,0,0" Visibility="Collapsed">
+                    <TextBlock Text="Também compro de (opcional)" Style="{StaticResource Rotulo}" />
+                    <WrapPanel x:Name="OutrosFornecedores" />
+                    <TextBlock FontSize="12" Style="{StaticResource TextoSuave}" Margin="0,2,0,0"
+                               Text="Clique para marcar. O produto aparece nesses fornecedores e, no pedido, o programa compara o último custo de cada um." />
+                </StackPanel>
             </StackPanel>
 
             <!-- Açougue e outros a granel: preço, estoque e lotes em quilos -->
@@ -83,6 +89,21 @@
                     <TextBox x:Name="Minimo" MaxLength="10" AutomationProperties.Name="Estoque mínimo" />
                     <TextBlock x:Name="MinimoErro" Style="{StaticResource ErroCampo}" />
                 </StackPanel>
+            </Grid>
+
+            <!-- Preço de custo (script 005): mostra a margem sobre o preço de venda -->
+            <Grid x:Name="CampoCusto" Margin="0,14,0,0" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock x:Name="RotuloCusto" Text="Preço de custo (R$)" Style="{StaticResource Rotulo}" />
+                    <TextBox x:Name="Custo" MaxLength="12" AutomationProperties.Name="Preço de custo" />
+                    <TextBlock x:Name="CustoErro" Style="{StaticResource ErroCampo}" />
+                </StackPanel>
+                <TextBlock x:Name="DicaMargem" Grid.Column="2" FontSize="12" Style="{StaticResource TextoSuave}" VerticalAlignment="Center" Margin="0,24,0,0" />
             </Grid>
 
             <Grid Margin="0,14,0,0">
@@ -145,6 +166,31 @@
                     <TextBlock x:Name="UnidadesCaixaErro" Style="{StaticResource ErroCampo}" />
                 </StackPanel>
             </Grid>
+
+            <!-- Produto por quilo: código da balança que vai impresso na etiqueta (o caixa lê a etiqueta) -->
+            <Grid x:Name="CampoBalanca" Margin="0,14,0,0" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Código na balança (opcional)" Style="{StaticResource Rotulo}" />
+                    <TextBox x:Name="CodigoBalanca" MaxLength="5" AutomationProperties.Name="Código do produto na balança" />
+                    <TextBlock x:Name="CodigoBalancaErro" Style="{StaticResource ErroCampo}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" FontSize="12" Style="{StaticResource TextoSuave}" VerticalAlignment="Center" Margin="0,24,0,0"
+                           Text="O mesmo número cadastrado na balança do açougue (PLU, até 5 dígitos). No caixa, a etiqueta impressa pela balança já entra com o peso e o preço." />
+            </Grid>
+
+            <!-- Promoção de validade da categoria (script 008): o produto pode ficar de fora -->
+            <Border x:Name="CampoSemPromocao" Background="{StaticResource Fundo}" CornerRadius="10" Padding="14,10" Margin="0,14,0,0" Visibility="Collapsed">
+                <StackPanel>
+                    <CheckBox x:Name="SemPromocaoValidade" Content="Não entra na promoção de validade da categoria" />
+                    <TextBlock FontSize="12" Style="{StaticResource TextoSuave}" Margin="22,4,0,0" TextWrapping="Wrap"
+                               Text="Para o que não pode ser vendido mais barato perto do vencimento (por exemplo, o que o fornecedor troca)." />
+                </StackPanel>
+            </Border>
 
             <!-- Só no cadastro: a primeira compra vira o primeiro lote -->
             <StackPanel x:Name="PrimeiroLote">

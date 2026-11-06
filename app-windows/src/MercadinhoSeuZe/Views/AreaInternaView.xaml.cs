@@ -22,7 +22,8 @@ public partial class AreaInternaView : UserControl
         new("estoque", "Estoque", "IconeCaixaProduto", true, [Perfil.Gerente]),
         new("fornecedores", "Fornecedores", "IconeCaminhao", true, [Perfil.Gerente]),
         new("caixa", "Caixa", "IconeCaixaRegistradora", true, [Perfil.Gerente, Perfil.Operador]),
-        new("fechamento", "Fechamento do dia", "IconeFechamento", false, [Perfil.Gerente, Perfil.Operador]),
+        new("funcionarios", "Funcionários", "IconeEquipe", true, [Perfil.Gerente]),
+        new("fechamento", "Fechamento do dia", "IconeFechamento", true, [Perfil.Gerente]),
     ];
 
     private readonly MainWindow _janela;
@@ -30,6 +31,7 @@ public partial class AreaInternaView : UserControl
     private readonly SupabaseApi? _api;
     private readonly DispatcherTimer _timerToast = new() { Interval = TimeSpan.FromSeconds(2.8) };
     private bool _compacta;
+    private bool _telaCheia;
 
     public AreaInternaView(MainWindow janela, Sessao sessao, SupabaseApi? api)
     {
@@ -66,28 +68,63 @@ public partial class AreaInternaView : UserControl
             return null;
         }
 
+        TelaCheia(false);
         UserControl tela = id switch
         {
-            "painel" => new PainelView(this, _sessao, Estoque(), Fornecedores()),
+            "painel" => new PainelView(this, _sessao, Estoque(), Fornecedores(), Caixa()),
             "estoque" => new EstoqueView(this, Estoque(), Fornecedores()),
-            "fornecedores" => new FornecedoresView(this, Fornecedores(), Estoque()),
-            _ => new CaixaView(),
+            "fornecedores" => new FornecedoresView(this, Fornecedores(), Estoque(), Mensagens()),
+            "funcionarios" => new FuncionariosView(this, Funcionarios()),
+            "fechamento" => new FechamentoView(this, Fechamento(), Caixa()),
+            _ => new CaixaView(this, Caixa(), Estoque()),
         };
         Pagina.Content = tela;
-        // Vendas e caixa ainda são exemplos (semana 2); estoque e pedidos já leem do banco.
-        AvisoTeste.Visibility = id is "painel" or "caixa" ? Visibility.Visible : Visibility.Collapsed;
-        AvisoTesteTexto.Text = id == "painel"
-            ? "Vendas e caixa ainda são dados de exemplo. Os avisos de estoque e de pedidos já vêm do banco."
-            : "Os números de vendas são dados de exemplo; nada é lido nem gravado no banco.";
         MontarMenu(id);
         Rolagem.ScrollToTop();
         if (_compacta) MostrarMenuCompacto(false);
         return tela;
     }
 
-    private EstoqueService? Estoque() => _api is null ? null : new EstoqueService(_api, _sessao);
+    // Um serviço de cada para todas as telas: o que já se descobriu do banco (scripts rodados ou não) vale para
+    // a próxima tela, sem repetir as consultas de teste a cada troca no menu.
+    private EstoqueService? _estoque;
+    private FornecedorService? _fornecedores;
+    private CaixaService? _caixa;
+    private FuncionarioService? _funcionarios;
+    private FechamentoService? _fechamento;
+    private MensagensService? _mensagens;
 
-    private FornecedorService? Fornecedores() => _api is null ? null : new FornecedorService(_api, _sessao);
+    private EstoqueService? Estoque() => _api is null ? null : _estoque ??= new EstoqueService(_api, _sessao);
+
+    private FornecedorService? Fornecedores() => _api is null ? null : _fornecedores ??= new FornecedorService(_api, _sessao);
+
+    private CaixaService? Caixa() => _api is null ? null : _caixa ??= new CaixaService(_api, _sessao);
+
+    private FuncionarioService? Funcionarios() => _api is null ? null : _funcionarios ??= new FuncionarioService(_api, _sessao);
+
+    private FechamentoService? Fechamento() => _api is null ? null : _fechamento ??= new FechamentoService(_api, _sessao);
+
+    public MensagensService? Mensagens() => _api is null ? null : _mensagens ??= new MensagensService(_api, _sessao);
+
+    private void MeuPerfil_Click(object sender, RoutedEventArgs e)
+    {
+        if (_compacta) MostrarMenuCompacto(false);
+        AbrirJanela(new MeuPerfilJanela(this, _sessao, Funcionarios()));
+    }
+
+    /// <summary>Tela inteira (modo caixa): sem o menu e sem margens; a página ocupa a altura da janela, sem rolagem.</summary>
+    public void TelaCheia(bool ligada)
+    {
+        if (ligada == _telaCheia) return;
+        _telaCheia = ligada;
+        AplicarLayout();
+        Pagina.Height = ligada ? Rolagem.ActualHeight : double.NaN;
+    }
+
+    private void Rolagem_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_telaCheia) Pagina.Height = e.NewSize.Height;
+    }
 
     /// <summary>Mostra uma janela (cadastro, confirmação) por cima de tudo.</summary>
     public void AbrirJanela(FrameworkElement conteudo)
@@ -96,6 +133,9 @@ public partial class AreaInternaView : UserControl
         JanelaAtual.Content = conteudo;
         Sobreposicao.Visibility = Visibility.Visible;
     }
+
+    /// <summary>Tem uma janela (cadastro, confirmação, autorização) aberta por cima da tela.</summary>
+    public bool JanelaAberta => Sobreposicao.Visibility == Visibility.Visible;
 
     public void FecharJanela()
     {
@@ -168,20 +208,29 @@ public partial class AreaInternaView : UserControl
         var compacta = e.NewSize.Width < 900;
         if (compacta == _compacta) return;
         _compacta = compacta;
+        AplicarLayout();
+    }
 
-        ColunaMenu.Width = compacta ? new GridLength(0) : new GridLength(264);
-        BarraCompacta.Visibility = compacta ? Visibility.Visible : Visibility.Collapsed;
+    private void AplicarLayout()
+    {
+        var compacta = _compacta;
+        ColunaMenu.Width = compacta || _telaCheia ? new GridLength(0) : new GridLength(264);
+        BarraCompacta.Visibility = compacta && !_telaCheia ? Visibility.Visible : Visibility.Collapsed;
         MarcaMenu.Visibility = compacta ? Visibility.Collapsed : Visibility.Visible;
+        ToldoMenu.Visibility = compacta ? Visibility.Collapsed : Visibility.Visible;
+        MenuLateral.Padding = compacta ? new Thickness(14, 20, 14, 20) : new Thickness(14, 0, 14, 20);
         Grid.SetRow(MenuLateral, compacta ? 1 : 0);
         Grid.SetRowSpan(MenuLateral, compacta ? 1 : 2);
-        AreaConteudo.Margin = compacta ? new Thickness(16, 24, 16, 40) : new Thickness(40, 32, 40, 48);
+        AreaConteudo.Margin = _telaCheia ? new Thickness(0)
+            : compacta ? new Thickness(16, 24, 16, 40) : new Thickness(40, 32, 40, 48);
+        Rolagem.VerticalScrollBarVisibility = _telaCheia ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto;
         MostrarMenuCompacto(false);
     }
 
     private void MostrarMenuCompacto(bool aberto)
     {
-        MenuLateral.Visibility = !_compacta || aberto ? Visibility.Visible : Visibility.Collapsed;
-        FundoMenu.Visibility = _compacta && aberto ? Visibility.Visible : Visibility.Collapsed;
+        MenuLateral.Visibility = !_telaCheia && (!_compacta || aberto) ? Visibility.Visible : Visibility.Collapsed;
+        FundoMenu.Visibility = _compacta && aberto && !_telaCheia ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void AlternarMenu_Click(object sender, RoutedEventArgs e) =>

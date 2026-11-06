@@ -94,7 +94,7 @@
                 <DockPanel Margin="0,0,0,20">
                     <StackPanel x:Name="MarcaCompacta" Orientation="Horizontal" Visibility="Collapsed">
                         <Border Style="{StaticResource MarcaQuadrado}">
-                            <TextBlock Text="M" Foreground="White" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock Text="M" Foreground="{StaticResource Tinta}" FontWeight="ExtraBold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Text="Mercado" FontWeight="Bold" FontSize="18" Margin="10,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
@@ -102,7 +102,7 @@
                             VerticalAlignment="Center" Click="Voltar_Click" />
                 </DockPanel>
 
-                <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="32,28,32,24" Effect="{StaticResource SombraCartao}">
+                <Border Style="{StaticResource CartaoBorda}" Padding="32,28,32,24" Effect="{StaticResource SombraCartao}">
                     <Grid>
                         <!-- Etapa 1: login -->
                         <StackPanel x:Name="EtapaLogin">
@@ -129,7 +129,7 @@
                                 <TextBox x:Name="CampoUsuario" Padding="40,0,14,0" TextChanged="CampoUsuario_TextChanged" />
                                 <TextBlock x:Name="DicaUsuario" Text="ex: joao.mercado" Foreground="{StaticResource Placeholder}"
                                            Margin="41,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" />
-                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeUsuario}" Foreground="#8C978F" Width="18"
+                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeUsuario}" Foreground="#8A93A0" Width="18"
                                                 HorizontalAlignment="Left" Margin="13,0,0,0" IsHitTestVisible="False" />
                             </Grid>
                             <TextBlock x:Name="ErroUsuario" Style="{StaticResource ErroCampo}" />
@@ -142,7 +142,7 @@
                                          KeyUp="CampoSenha_Teclado" GotKeyboardFocus="CampoSenha_Teclado" LostKeyboardFocus="CampoSenha_PerdeuFoco" />
                                 <TextBlock x:Name="DicaSenha" Text="Digite sua senha" Foreground="{StaticResource Placeholder}"
                                            Margin="41,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" />
-                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCadeado}" Foreground="#8C978F" Width="18"
+                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCadeado}" Foreground="#8A93A0" Width="18"
                                                 HorizontalAlignment="Left" Margin="13,0,0,0" IsHitTestVisible="False" />
                                 <Button x:Name="BotaoMostrar" Content="Mostrar" Style="{StaticResource BotaoLink}" FontSize="13"
                                         HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0"
@@ -205,14 +205,14 @@
                                        Style="{StaticResource TextoSuave}" FontSize="14" Margin="0,0,0,24" />
 
                             <Border x:Name="AvisoRecuperar" Style="{StaticResource Aviso}" Visibility="Collapsed"
-                                    Background="{StaticResource Verde50}" BorderBrush="#BFE0CB">
+                                    Background="{StaticResource Verde50}" BorderBrush="{StaticResource Verde700}">
                                 <TextBlock x:Name="AvisoRecuperarTexto" Foreground="{StaticResource Verde700}" FontSize="14" />
                             </Border>
 
                             <TextBlock Text="Usuário" Style="{StaticResource Rotulo}" />
                             <Grid>
                                 <TextBox x:Name="CampoUsuarioRecuperar" Padding="40,0,14,0" />
-                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeUsuario}" Foreground="#8C978F" Width="18"
+                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeUsuario}" Foreground="#8A93A0" Width="18"
                                                 HorizontalAlignment="Left" Margin="13,0,0,0" IsHitTestVisible="False" />
                             </Grid>
                             <TextBlock x:Name="ErroUsuarioRecuperar" Style="{StaticResource ErroCampo}" />

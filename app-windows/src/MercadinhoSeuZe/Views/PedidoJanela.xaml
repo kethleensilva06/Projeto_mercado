@@ -3,18 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="640">
     <!-- Novo pedido de reposição (igual ao modal-pedido de fornecedores.html, com vários itens) -->
-    <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24,24,24,20" Effect="{StaticResource SombraJanela}">
+    <Border Style="{StaticResource Janela}" Padding="24,24,24,20">
         <StackPanel>
             <DockPanel Margin="0,0,0,18">
                 <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource LinkSuave}" FontSize="24" FontWeight="Normal"
                         VerticalAlignment="Top" Click="Cancelar_Click" ToolTip="Fechar" AutomationProperties.Name="Fechar" />
                 <StackPanel>
-                    <TextBlock Text="Novo pedido de reposição" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
-                    <TextBlock Text="Depois de criar, o pedido abre pronto para enviar pelo WhatsApp ou e-mail." FontSize="14" Style="{StaticResource TextoSuave}" />
+                    <TextBlock x:Name="Titulo" Text="Novo pedido de reposição" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock x:Name="Subtitulo" Text="Depois de criar, o pedido abre pronto para enviar pelo WhatsApp ou e-mail." FontSize="14" Style="{StaticResource TextoSuave}" />
                 </StackPanel>
             </DockPanel>
 
-            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="#F2C4BE" Visibility="Collapsed">
+            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="{StaticResource Vermelho600}" Visibility="Collapsed">
                 <TextBlock x:Name="AvisoErroTexto" Foreground="{StaticResource Vermelho600}" FontSize="14" />
             </Border>
 
@@ -36,6 +36,11 @@
                 </StackPanel>
             </Border>
             <TextBlock x:Name="ItensErro" Style="{StaticResource ErroCampo}" />
+            <!-- Total pelo custo e aviso de pedido mínimo do fornecedor -->
+            <DockPanel x:Name="CampoTotal" Margin="0,8,0,0" Visibility="Collapsed">
+                <TextBlock x:Name="TotalPedido" DockPanel.Dock="Right" FontSize="14" FontWeight="SemiBold" />
+                <TextBlock x:Name="AvisoMinimo" FontSize="13" Foreground="{StaticResource Ambar700}" Margin="0,0,12,0" />
+            </DockPanel>
 
             <Grid Margin="0,12,0,0">
                 <TextBox x:Name="Busca" Padding="42,0,14,0" MaxLength="80" TextChanged="Busca_TextChanged" PreviewKeyDown="Busca_PreviewKeyDown"
@@ -68,7 +73,7 @@
 
             <!-- Prévia da mensagem -->
             <TextBlock Text="Mensagem que vai para o fornecedor" Style="{StaticResource Rotulo}" Margin="0,16,0,6" />
-            <Border Background="{StaticResource Fundo}" CornerRadius="10" Padding="14,10">
+            <Border Background="{StaticResource Bilhete}" BorderBrush="{StaticResource Etiqueta}" BorderThickness="4,0,0,0" CornerRadius="2" Padding="14,10">
                 <TextBlock x:Name="Previa" FontSize="14" />
             </Border>
             <TextBlock FontSize="12" Style="{StaticResource TextoSuave}" Margin="0,6,0,0"
