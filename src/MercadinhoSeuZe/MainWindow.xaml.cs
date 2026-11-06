@@ -25,6 +25,9 @@ public partial class MainWindow : Window
         MostrarInicio();
     }
 
+    /// <summary>Preferências deste computador (uma instância só, para uma tela não apagar o que a outra gravou).</summary>
+    public PreferenciasLocais Preferencias => _preferencias;
+
     public void MostrarInicio() => Tela.Content = new LandingView(this, _api);
 
     public void MostrarLogin() => Tela.Content = new LoginView(this, _auth, _preferencias);

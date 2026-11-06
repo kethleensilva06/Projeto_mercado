@@ -22,7 +22,7 @@ public partial class AreaInternaView : UserControl
         new("estoque", "Estoque", "IconeCaixaProduto", true, [Perfil.Gerente]),
         new("fornecedores", "Fornecedores", "IconeCaminhao", true, [Perfil.Gerente]),
         new("caixa", "Caixa", "IconeCaixaRegistradora", true, [Perfil.Gerente, Perfil.Operador]),
-        new("fechamento", "Fechamento do dia", "IconeFechamento", false, [Perfil.Gerente, Perfil.Operador]),
+        new("fechamento", "Fechamento do dia", "IconeFechamento", true, [Perfil.Gerente, Perfil.Operador]),
     ];
 
     private readonly MainWindow _janela;
@@ -30,6 +30,15 @@ public partial class AreaInternaView : UserControl
     private readonly SupabaseApi? _api;
     private readonly DispatcherTimer _timerToast = new() { Interval = TimeSpan.FromSeconds(2.8) };
     private bool _compacta;
+
+    /// <summary>
+    /// Venda ainda aberta no Caixa: os itens ficam reservados aqui (e não no estoque) até o pagamento,
+    /// e continuam na venda se a pessoa for a outra tela e voltar. Some ao sair do sistema.
+    /// </summary>
+    public List<ItemCarrinho> VendaAberta { get; } = [];
+
+    /// <summary>Há uma janela (cadastro, confirmação) por cima da tela.</summary>
+    public bool JanelaAberta => Sobreposicao.Visibility == Visibility.Visible;
 
     public AreaInternaView(MainWindow janela, Sessao sessao, SupabaseApi? api)
     {
@@ -68,17 +77,13 @@ public partial class AreaInternaView : UserControl
 
         UserControl tela = id switch
         {
-            "painel" => new PainelView(this, _sessao, Estoque(), Fornecedores()),
+            "painel" => new PainelView(this, _sessao, Estoque(), Fornecedores(), Caixa()),
             "estoque" => new EstoqueView(this, Estoque(), Fornecedores()),
             "fornecedores" => new FornecedoresView(this, Fornecedores(), Estoque()),
-            _ => new CaixaView(),
+            "fechamento" => new FechamentoView(this, _sessao, Caixa(), _janela.Preferencias),
+            _ => new CaixaView(this, _sessao, Caixa(), Estoque()),
         };
         Pagina.Content = tela;
-        // Vendas e caixa ainda são exemplos (semana 2); estoque e pedidos já leem do banco.
-        AvisoTeste.Visibility = id is "painel" or "caixa" ? Visibility.Visible : Visibility.Collapsed;
-        AvisoTesteTexto.Text = id == "painel"
-            ? "Vendas e caixa ainda são dados de exemplo. Os avisos de estoque e de pedidos já vêm do banco."
-            : "Os números de vendas são dados de exemplo; nada é lido nem gravado no banco.";
         MontarMenu(id);
         Rolagem.ScrollToTop();
         if (_compacta) MostrarMenuCompacto(false);
@@ -88,6 +93,8 @@ public partial class AreaInternaView : UserControl
     private EstoqueService? Estoque() => _api is null ? null : new EstoqueService(_api, _sessao);
 
     private FornecedorService? Fornecedores() => _api is null ? null : new FornecedorService(_api, _sessao);
+
+    private CaixaService? Caixa() => _api is null ? null : new CaixaService(_api, _sessao);
 
     /// <summary>Mostra uma janela (cadastro, confirmação) por cima de tudo.</summary>
     public void AbrirJanela(FrameworkElement conteudo)

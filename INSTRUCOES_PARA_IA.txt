@@ -40,19 +40,26 @@ database/                  Scripts SQL, numerados, para rodar no SQL Editor do S
   003_semana3_estoque.sql  Tabelas produtos e lotes, com RLS (todos leem, só o gerente altera).
   004_semana4_fornecedores.sql  Tabelas fornecedores, pedidos e pedido_itens, coluna produtos.fornecedor_id e as
                            funções criar_pedido e registrar_entrega (tudo ou nada). RLS: só o gerente.
+  005_semana5_caixa.sql    Tabelas caixas (um por dia), vendas, venda_itens e venda_baixas; funções abrir_caixa,
+                           registrar_venda e cancelar_venda (security definer: o operador não altera lotes
+                           direto, só por elas). RLS: perfis ativos leem; ninguém grava direto.
+  006_semana6_fechamento.sql  Colunas do fechamento em caixas; funções fechar_caixa, reabrir_caixa (só gerente),
+                           vendas_por_dia e mais_vendidos (análise por dia, semana e mês).
 src/MercadinhoSeuZe/
   App.xaml                 Cores, fontes, ícones (Geometry), toldo, linha tracejada e estilos de botões/campos/
                            listas de escolha, etiqueta de preço, faixa de contadores (Kpi), chips, cabeçalho de
                            tabela e janelas. Reutilize, não duplique.
   MainWindow.xaml(.cs)     Janela única; troca as telas com MostrarInicio/MostrarLogin/MostrarAreaDoUsuario.
   Models/                  Perfil (Gerente/Operador), Sessao (usuário logado), Painel, Estoque (Produto, Lote),
-                           Fornecedores (Fornecedor, Pedido, ItemPedido, MensagemPedido).
+                           Fornecedores (Fornecedor, Pedido, ItemPedido, MensagemPedido), Caixa (Caixa, Venda,
+                           ItemVenda, ItemCarrinho, FormasPagamento, VendasDoDia, MaisVendido).
   Services/                Configuracao (lê appsettings.json embutido), SupabaseApi (HTTP; ListarAsync,
                            InserirAsync, AtualizarAsync, ExcluirAsync, ChamarAsync (funções rpc) com o token
                            do usuário logado), AuthService (login, bloqueio, auditoria), PreferenciasLocais,
-                           EstoqueService, FornecedorService, ContatoRapido (abre WhatsApp/e-mail).
+                           EstoqueService, FornecedorService, CaixaService (caixa, vendas, fechamento e análise;
+                           CaixaService.Hoje = data de hoje no horário de Brasília), ContatoRapido (abre WhatsApp/e-mail).
   Views/                   Uma UserControl por tela: LandingView, LoginView, AreaInternaView, PainelView,
-                           CaixaView, EstoqueView, FornecedoresView. Janelas por cima da tela (ProdutoJanela,
+                           CaixaView, FechamentoView, EstoqueView, FornecedoresView. Janelas por cima da tela (ProdutoJanela,
                            LoteJanela, ConfirmacaoJanela, FornecedorJanela, PedidoJanela, EnvioPedidoJanela,
                            EntregaJanela) abrem com AreaInternaView.AbrirJanela; Esc fecha.
                            Formulario.cs: leitura de preço, inteiro e data (dd/mm/aaaa) e erros de campo.
@@ -80,16 +87,12 @@ publicar.ps1               Gera publish/MercadinhoSeuZe.exe (feche o .exe aberto
   Botão "Passar 1 caixa de cada produto que falta": cadastra no banco (com o login atual) todos os
   produtos do catálogo que ainda não existem pelo nome, cada um com código novo e 1 caixa como lote.
 
-3b. SEMANA 2 (EM MODO DE TESTE)
--------------------------------
-- Views/AreaInternaView: menu lateral comum das telas internas (itens por perfil, "em breve", toast).
-- Views/PainelView: painel do gerente (indicadores, acesso rápido, avisos; atualiza a cada 30 s).
-- Views/CaixaView: caixa provisório do operador com o resumo de vendas do dia.
-- Os dados vêm de Services/DadosExemplo.cs (exemplos em memória, faixa amarela "Modo de teste" na tela).
-  Nenhuma tabela foi criada. Próximo passo: criar as tabelas (script 003), ler do Supabase no lugar
-  de DadosExemplo e tirar a faixa de modo de teste.
+3b. SEMANA 2 - PAINEL (LIGADO AO BANCO DESDE A SEMANA 5)
+----------------------------------------------------------
+- Views/AreaInternaView: menu lateral comum das telas internas (itens por perfil, toast).
+- Views/PainelView: painel do gerente (indicadores, acesso rápido, avisos; atualiza a cada 30 s). Vendas e
+  caixa do dia vêm das tabelas da semana 5; DadosExemplo e a faixa "Modo de teste" foram removidos.
 - Views/EmDesenvolvimentoView não é mais usada (ficou da semana 1).
-- A faixa amarela "Modo de teste" aparece só no Painel e no Caixa.
 
 3c. SEMANA 3 - ESTOQUE (LIGADO AO BANCO)
 ----------------------------------------
@@ -156,8 +159,7 @@ publicar.ps1               Gera publish/MercadinhoSeuZe.exe (feche o .exe aberto
   é só sair e entrar de novo. Renovar o token sozinho fica para depois, se o dono pedir.
 - Painel (pedido do Guilherme): o indicador "Estoque baixo" e os avisos de estoque (sem estoque, estoque
   baixo, lote vencido/vencendo, aviso antecipado; no máximo 8) vêm do banco pelo EstoqueService, a cada
-  30 s. Vendas e caixa continuam em DadosExemplo até as tabelas da semana 5 existirem; a faixa amarela
-  do Painel diz isso. Os pedidos pendentes já vêm do banco (semana 4).
+  30 s. Os pedidos pendentes vêm do banco (semana 4) e as vendas e o caixa também (semana 5).
 
 3d. SEMANA 4 - FORNECEDORES (LIGADO AO BANCO)
 ---------------------------------------------
@@ -217,21 +219,54 @@ publicar.ps1               Gera publish/MercadinhoSeuZe.exe (feche o .exe aberto
   dos outros): cadastra 6 fornecedores de teste que cobrem as categorias do leitor simulado. Telefones e
   e-mails fictícios (.example); para testar o WhatsApp, edite um e coloque um número seu.
 
+3e. SEMANA 5 - CAIXA (LIGADO AO BANCO)
+--------------------------------------
+- Script database/005_semana5_caixa.sql. Sem ele a tela mostra "Rode o script SQL da semana".
+- Um caixa por dia (caixas.data, horário de Brasília), aberto com o troco inicial (abrir_caixa). Gerente e
+  operador vendem.
+- Venda (CaixaView): busca pelo leitor (código da caixa DUN-14 ou da unidade EAN-13, igual a porCodigo do site)
+  ou pelo nome; produto por quilo pede o peso. Os itens ficam reservados em AreaInternaView.VendaAberta (só
+  neste computador; continuam ao trocar de tela e somem ao sair) e nada sai do estoque antes do pagamento.
+  A busca mostra o disponível já descontando o reservado. F2 vai para a busca, F4 finaliza.
+- Pagamento: dinheiro (valor recebido e troco; vazio = valor exato), Pix, débito ou crédito. registrar_venda
+  confere tudo de novo no banco, usa o preço do cadastro, dá baixa nos lotes (vence primeiro, sai primeiro)
+  e guarda de qual lote saiu cada item (venda_baixas). Lote vencido não é vendido; se só houver lote vencido,
+  a venda é bloqueada com aviso para tirar da prateleira.
+- Só o gerente cancela venda paga (cancelar_venda): os itens voltam para os mesmos lotes e a venda fica
+  na lista riscada, fora dos totais. "Cancelar venda" na venda aberta só esvazia a reserva.
+- Painel: vendas, ticket médio e "Caixa aberto/fechado por" vêm do banco.
+
+3f. SEMANA 6 - FECHAMENTO DO DIA (LIGADO AO BANCO)
+--------------------------------------------------
+- Script database/006_semana6_fechamento.sql (depois do 005).
+- FechamentoView: totais do dia, canceladas, por forma de pagamento, mais vendidos e a conferência do
+  dinheiro (troco inicial + vendas em dinheiro = esperado; a pessoa digita o contado e vê sobra/falta).
+  "Fechar o caixa" (fechar_caixa) grava o contado e a observação; depois disso o banco não aceita venda nem
+  cancelamento naquele dia. Só o gerente reabre o caixa de hoje (reabrir_caixa).
+- Resumo por e-mail: abre o programa de e-mail com o resumo escrito (mailto, sem senha no .exe) para o
+  "E-mail da gerência" (guardado em PreferenciasLocais.EmailResumo); "Copiar resumo" também.
+- Análise (só o gerente): vendas por dia (14 dias), por semana (8) e por mês (12), com os mais vendidos do
+  período (funções vendas_por_dia e mais_vendidos; os dados ficam no Supabase).
+- FICOU PARA DEPOIS (precisa de conta/serviço de fora; combinar com o responsável antes):
+  app de celular da gerência e a caixa de e-mail de pedidos (Edge Function que recebe as respostas dos
+  fornecedores, janela de conversa por fornecedor e número do pedido na mensagem).
+
 4. O QUE AINDA DEVE SER FEITO (UMA SEMANA POR VEZ, NESTA ORDEM)
 --------------------------------------------------------------
 Faça só a semana pedida. Cada semana é apresentada ao dono do mercado antes da próxima.
-Semana 2 - Painel (feito em modo de teste; falta ligar ao banco): tela pós-login diferente por perfil; resumo de vendas do dia; para o gerente,
+Semana 2 - Painel (feito, ligado ao banco): tela pós-login diferente por perfil; resumo de vendas do dia; para o gerente,
            avisos de estoque baixo e itens a repor; operador vai só para o Caixa; tela central
            com botões para as outras telas. Trocar o destino em MainWindow.MostrarAreaDoUsuario.
 Semana 3 - Estoque (feito, ligado ao banco): cadastro de produtos; lotes com quantidade restante e validade; filtros
            (perto da validade, estoque baixo, sem estoque, ordem alfabética); indicadores visuais.
 Semana 4 - Fornecedores (feito, ligado ao banco): cadastro; produtos de cada fornecedor; indicadores de estoque;
            contato rápido; histórico de pedidos (feitos, pendentes).
-Semana 5 - Caixa: tela padrão de caixa; pagamento; item na venda fica reservado e só dá baixa
+Semana 5 - Caixa (feito, ligado ao banco): tela padrão de caixa; pagamento; item na venda fica reservado e só dá baixa
            no estoque após o pagamento; bloquear venda de lote vencido.
-Semana 6 - Fechamento do dia: resumo de vendas; envio por e-mail; dados na nuvem para análise
-           diária, semanal e mensal; integração com app de celular da gerência.
-           Também (pedido do Guilherme, 20/10): caixa de e-mail de pedidos; as respostas dos fornecedores por
+Semana 6 - Fechamento do dia (feito, menos o que depende de serviço de fora): resumo de vendas; envio por
+           e-mail; dados na nuvem para análise diária, semanal e mensal. FALTA: integração com app de
+           celular da gerência.
+           Também, FALTA (pedido do Guilherme, 20/10): caixa de e-mail de pedidos; as respostas dos fornecedores por
            e-mail chegam ao sistema (Edge Function do Supabase recebe e grava numa tabela; senhas só lá, nunca
            no .exe). Ícone de mensagens ao lado de cada fornecedor abre uma janela com o pedido, a conversa
            e o campo para responder. Cada mensagem de pedido leva o número do pedido ("Pedido nº 42") para

@@ -15,8 +15,11 @@ public static class ContatoRapido
 
     /// <summary>Abre um e-mail novo para o fornecedor com assunto e texto preenchidos. false se não abriu.</summary>
     public static bool AbrirEmail(Fornecedor f, string assunto, string mensagem) =>
-        !string.IsNullOrWhiteSpace(f.Email) &&
-        Abrir($"mailto:{f.Email!.Trim()}?subject={Uri.EscapeDataString(assunto)}&body={Uri.EscapeDataString(mensagem.Replace("\n", "\r\n"))}");
+        !string.IsNullOrWhiteSpace(f.Email) && AbrirEmail(f.Email!, assunto, mensagem);
+
+    /// <summary>Abre um e-mail novo para o endereço com assunto e texto preenchidos (ex.: resumo do fechamento).</summary>
+    public static bool AbrirEmail(string email, string assunto, string mensagem) =>
+        Abrir($"mailto:{email.Trim()}?subject={Uri.EscapeDataString(assunto)}&body={Uri.EscapeDataString(mensagem.Replace("\r\n", "\n").Replace("\n", "\r\n"))}");
 
     public static bool Copiar(string texto)
     {

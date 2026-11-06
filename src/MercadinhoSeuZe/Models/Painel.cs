@@ -1,14 +1,13 @@
 namespace MercadinhoSeuZe.Models;
 
-/// <summary>Totais de vendas do dia (o que todos os perfis podem ver).</summary>
+/// <summary>Totais de vendas do dia (o que todos os perfis podem ver), sem as vendas canceladas.</summary>
 public record ResumoDia(decimal Total, int QuantidadeVendas)
 {
     public decimal TicketMedio => QuantidadeVendas > 0 ? Total / QuantidadeVendas : 0;
+
+    public static ResumoDia De(IEnumerable<Venda> vendas)
+    {
+        var validas = vendas.Where(v => !v.Cancelada).ToList();
+        return new(validas.Sum(v => v.Total), validas.Count);
+    }
 }
-
-public record SituacaoCaixa(bool Aberto, string? AbertoPor, string? AbertoAs);
-
-/// <summary>O que o painel ainda mostra de exemplo (vendas e caixa). Estoque e pedidos vêm do banco.</summary>
-public record DadosPainel(
-    ResumoDia Resumo,
-    SituacaoCaixa Caixa);

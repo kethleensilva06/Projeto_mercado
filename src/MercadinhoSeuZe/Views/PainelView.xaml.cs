@@ -10,8 +10,8 @@ using MercadinhoSeuZe.Services;
 namespace MercadinhoSeuZe.Views;
 
 /// <summary>
-/// Painel do gerente (igual a painel.html do site). Os avisos de estoque e os pedidos pendentes vêm do banco
-/// (semanas 3 e 4); vendas e caixa ainda são dados de exemplo até a semana 5.
+/// Painel do gerente (igual a painel.html do site). Tudo vem do banco: vendas e caixa do dia (semana 5),
+/// avisos de estoque (semana 3) e pedidos pendentes (semana 4).
 /// </summary>
 public partial class PainelView : UserControl
 {
@@ -21,16 +21,18 @@ public partial class PainelView : UserControl
     private readonly Sessao _sessao;
     private readonly EstoqueService? _estoque;
     private readonly FornecedorService? _fornecedores;
+    private readonly CaixaService? _caixa;
     private bool _atualizando;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(30) };
 
-    public PainelView(AreaInternaView area, Sessao sessao, EstoqueService? estoque, FornecedorService? fornecedores)
+    public PainelView(AreaInternaView area, Sessao sessao, EstoqueService? estoque, FornecedorService? fornecedores, CaixaService? caixa)
     {
         InitializeComponent();
         _area = area;
         _sessao = sessao;
         _estoque = estoque;
         _fornecedores = fornecedores;
+        _caixa = caixa;
 
         _timer.Tick += async (_, _) => await AtualizarAsync();
         Loaded += async (_, _) => { _timer.Start(); await AtualizarAsync(); };
@@ -52,7 +54,19 @@ public partial class PainelView : UserControl
         var data = agora.ToString("dddd, d 'de' MMMM", PtBr);
         DataTurno.Text = char.ToUpper(data[0]) + data[1..] + " — " + Turno(agora.Hour);
 
-        var dados = DadosExemplo.Painel();
+        // Caixa e vendas de hoje (semana 5)
+        Caixa? caixa = null;
+        ResumoDia? resumo = null;
+        string? erroVendas = null;
+        if (_caixa is not null)
+        {
+            try
+            {
+                caixa = await _caixa.CaixaDeHojeAsync();
+                resumo = ResumoDia.De(caixa is null ? [] : await _caixa.VendasAsync(caixa.Id));
+            }
+            catch (ConexaoException ex) { erroVendas = ex.Message; }
+        }
 
         // Estoque real do banco
         List<Produto>? produtos = null;
@@ -87,8 +101,10 @@ public partial class PainelView : UserControl
         var antecipados = produtos?.Where(p => p.AvisoAntecipado).OrderBy(p => p.Quantidade).ThenBy(p => p.Nome, porNome).ToList() ?? [];
         var validade = produtos?.Where(p => p.Vencido || p.ValidadeProxima).OrderBy(p => p.ProximaValidade).ToList() ?? [];
 
-        KpiVendas.Text = Moeda(dados.Resumo.Total);
-        KpiVendasSub.Text = Plural(dados.Resumo.QuantidadeVendas, "venda realizada", "vendas realizadas");
+        KpiVendas.Text = resumo is null ? "—" : Moeda(resumo.Total);
+        KpiVendasSub.Text = resumo is null ? "Não foi possível ler as vendas"
+            : caixa is null ? "O caixa ainda não foi aberto"
+            : Plural(resumo.QuantidadeVendas, "venda realizada", "vendas realizadas");
         KpiEstoque.Text = produtos is null ? "—" : Plural(baixos.Count + semEstoque.Count, "produto", "produtos");
         KpiEstoqueSub.Text = produtos is null ? "Não foi possível ler o estoque"
             : antecipados.Count > 0 ? $"Abaixo do mínimo ou zerados · +{antecipados.Count} perto do mínimo"
@@ -97,8 +113,8 @@ public partial class PainelView : UserControl
         KpiPedidosSub.Text = pedidos is null ? "Não foi possível ler os pedidos"
             : pedidos.Count(p => p.Atrasado) is > 0 and var atrasados ? $"Aguardando entrega · {atrasados} com atraso"
             : "Aguardando entrega do fornecedor";
-        KpiTicket.Text = Moeda(dados.Resumo.TicketMedio);
-        AtalhoCaixa.Text = dados.Caixa.Aberto ? "Ir para o caixa" : "Abrir caixa";
+        KpiTicket.Text = resumo is null ? "—" : Moeda(resumo.TicketMedio);
+        AtalhoCaixa.Text = caixa is null ? "Abrir caixa" : "Ir para o caixa";
 
         ListaAvisos.Children.Clear();
         if (erroEstoque is not null)
@@ -135,9 +151,14 @@ public partial class PainelView : UserControl
                     : [new Run("Pedido para "), Negrito(fornecedor), new Run(p.Previsao is { } prev ? $" chega até {prev:dd/MM/yyyy}." : " ainda não foi entregue.")],
                 $"Pedido de {p.Data:dd/MM/yyyy}");
         }
-        if (dados.Caixa.Aberto)
+        if (erroVendas is not null)
+            AdicionarAviso("IconeAlerta", "Vermelho50", "Vermelho600", [new Run("Não foi possível ler as vendas: " + erroVendas)], "Caixa");
+        if (caixa is { Fechado: true })
+            AdicionarAviso("IconeFechamento", "Verde50", "Verde700",
+                [new Run("Caixa fechado por "), Negrito(caixa.NomeFechadoPor ?? ""), new Run($" às {caixa.FechadoAs}.")], "Hoje");
+        else if (caixa is not null)
             AdicionarAviso("IconeCaixaRegistradora", "Verde50", "Verde700",
-                [new Run("Caixa aberto por "), Negrito(dados.Caixa.AbertoPor ?? ""), new Run($" às {dados.Caixa.AbertoAs}.")], "Hoje");
+                [new Run("Caixa aberto por "), Negrito(caixa.NomeAbertoPor), new Run($" às {caixa.AbertoAs}.")], "Hoje");
         if (ListaAvisos.Children.Count == 0)
             ListaAvisos.Children.Add(new TextBlock { Text = "Nenhum aviso no momento.", FontSize = 14, Style = (Style)FindResource("TextoSuave") });
 
@@ -175,6 +196,7 @@ public partial class PainelView : UserControl
         else if (destino == "estoque") _area.Abrir("estoque");
         else if (destino == "Estoque") (_area.Abrir("estoque") as EstoqueView)?.NovoProduto();
         else if (destino == "Fornecedores") (_area.Abrir("fornecedores") as FornecedoresView)?.NovoPedido();
+        else if (destino == "Fechamento do dia") _area.Abrir("fechamento");
         else _area.EmBreve(destino);
     }
 

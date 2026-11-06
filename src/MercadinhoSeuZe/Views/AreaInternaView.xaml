@@ -94,18 +94,6 @@
         <!-- Conteúdo -->
         <ScrollViewer x:Name="Rolagem" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto">
             <StackPanel x:Name="AreaConteudo" Margin="40,32,40,48">
-                <!-- Aviso de modo de teste -->
-                <Border x:Name="AvisoTeste" Style="{StaticResource Aviso}" Background="{StaticResource Ambar50}" BorderBrush="{StaticResource BordaAvisoAmbar}"
-                        Padding="14,10" Margin="0,0,0,24">
-                    <DockPanel>
-                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeTriangulo}" Foreground="{StaticResource Ambar700}"
-                                        Width="18" VerticalAlignment="Top" Margin="0,1,10,0" />
-                        <TextBlock Foreground="{StaticResource Ambar700}" FontSize="14">
-                            <Run FontWeight="SemiBold" Text="Modo de teste." />
-                            <Run x:Name="AvisoTesteTexto" />
-                        </TextBlock>
-                    </DockPanel>
-                </Border>
                 <ContentControl x:Name="Pagina" Focusable="False" />
             </StackPanel>
         </ScrollViewer>

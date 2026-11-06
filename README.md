@@ -12,11 +12,11 @@ O visual, os textos e os perfis seguem o projeto de referência
 | Semana | Entrega | Situação |
 |---|---|---|
 | 1 | Tela inicial e login com perfis gerente e operador | Feito |
-| 2 | Painel (modo de teste, com dados de exemplo) | Em teste |
+| 2 | Painel | Feito |
 | 3 | Estoque (produtos, lotes e validade) | Feito |
 | 4 | Fornecedores (cadastro, pedidos pelo WhatsApp/e-mail, entregas) | Feito |
-| 5 | Caixa | Planejado |
-| 6 | Fechamento do dia | Planejado |
+| 5 | Caixa (venda, pagamento, baixa no estoque, lote vencido bloqueado) | Feito |
+| 6 | Fechamento do dia (conferência do dinheiro, resumo por e-mail, vendas por dia/semana/mês) | Feito (falta app de celular e e-mail de pedidos) |
 | 7 | Previsão de compras e pedidos automáticos | Planejado |
 
 ## Estrutura
@@ -26,7 +26,7 @@ database/                 scripts SQL para rodar no Supabase, em ordem
 src/MercadinhoSeuZe/
   Models/                 tipos do sistema (Perfil, Sessao, Produto, Fornecedor, Pedido)
   Services/               configuração, acesso ao Supabase, login e preferências locais
-  Views/                  telas (tela inicial, login, área interna com menu, painel, caixa provisório, estoque, fornecedores)
+  Views/                  telas (tela inicial, login, área interna com menu, painel, caixa, fechamento, estoque, fornecedores)
   App.xaml                cores e estilos visuais
 publicar.ps1              gera o .exe único
 INSTRUCOES_PARA_IA.txt    resumo do projeto, próximos passos e restrições (leia antes de alterar)
@@ -37,8 +37,8 @@ INSTRUCOES_PARA_IA.txt    resumo do projeto, próximos passos e restrições (le
 1. **Instalar o .NET 10 SDK**: `winget install Microsoft.DotNet.SDK.10`
 2. **Criar o projeto no Supabase** (https://supabase.com, plano grátis).
 3. No Supabase, abrir **SQL Editor** e executar os scripts de `database/` em ordem
-   (`001_semana1_perfis.sql`, depois `003_semana3_estoque.sql` e `004_semana4_fornecedores.sql`;
-   o `002` só cria usuários de teste).
+   (`001_semana1_perfis.sql`, depois `003_semana3_estoque.sql`, `004_semana4_fornecedores.sql`,
+   `005_semana5_caixa.sql` e `006_semana6_fechamento.sql`; o `002` só cria usuários de teste).
 4. Em **Authentication > Users > Add user**, criar os usuários marcando *Auto Confirm User*.
    O login é por **nome de usuário**: crie cada um com o e-mail interno `<usuario>@mercado.local`
    (ex.: `ana.caixa@mercado.local`); no programa a pessoa digita só `ana.caixa`.
@@ -73,7 +73,7 @@ O .exe já leva a configuração dentro dele e roda em qualquer Windows 64 bits 
 - "Esqueci minha senha" grava um pedido em `pedidos_senha` para o gerente redefinir a senha.
 - "Lembrar meu usuário" guarda o último usuário em `%LocalAppData%\Mercado\preferencias.json`.
 - As mensagens de "Fale com a gente" vão para a tabela `contatos`.
-- Depois do login, o gerente vai para o Painel e o operador para o Caixa (provisório até a semana 5).
+- Depois do login, o gerente vai para o Painel e o operador para o Caixa.
 
 ## Segurança
 
