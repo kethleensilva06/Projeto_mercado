@@ -3,16 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="540">
     <!-- Cadastro / edição de produto (igual ao modal-produto de estoque.html) -->
-    <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24,24,24,20" Effect="{StaticResource SombraJanela}">
+    <Border Style="{StaticResource CartaoJanela}" Padding="24,24,24,20">
         <StackPanel>
             <DockPanel Margin="0,0,0,18">
                 <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource LinkSuave}" FontSize="24" FontWeight="Normal"
                         VerticalAlignment="Top" Click="Cancelar_Click" ToolTip="Fechar" AutomationProperties.Name="Fechar" />
-                <TextBlock x:Name="Titulo" Text="Novo produto" FontSize="22" FontWeight="Bold" />
+                <TextBlock x:Name="Titulo" Text="Novo produto" FontFamily="{StaticResource FonteTitulo}" FontSize="22" FontWeight="Bold" />
             </DockPanel>
 
             <!-- Dados achados pelo código de barras num banco aberto (Open Food Facts) -->
-            <Border x:Name="AvisoEncontrado" Style="{StaticResource Aviso}" Background="{StaticResource Verde50}" BorderBrush="#BFE0CB" Visibility="Collapsed">
+            <Border x:Name="AvisoEncontrado" Style="{StaticResource Aviso}" Background="{StaticResource Verde50}" BorderBrush="{StaticResource BordaAvisoVerde}" Visibility="Collapsed">
                 <DockPanel>
                     <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCodigoBarras}" Foreground="{StaticResource Verde700}"
                                     Width="18" VerticalAlignment="Top" Margin="0,1,10,0" />
@@ -20,7 +20,7 @@
                 </DockPanel>
             </Border>
 
-            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="#F2C4BE" Visibility="Collapsed">
+            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="{StaticResource BordaAvisoVermelho}" Visibility="Collapsed">
                 <TextBlock x:Name="AvisoErroTexto" Foreground="{StaticResource Vermelho600}" FontSize="14" />
             </Border>
 
@@ -60,7 +60,7 @@
             </StackPanel>
 
             <!-- Açougue e outros a granel: preço, estoque e lotes em quilos -->
-            <Border Background="{StaticResource Fundo}" CornerRadius="10" Padding="14,10" Margin="0,14,0,0">
+            <Border Background="{StaticResource Fundo}" CornerRadius="6" Padding="14,10" Margin="0,14,0,0">
                 <StackPanel>
                     <CheckBox x:Name="PorPeso" Content="Vendido por quilo (kg), ex.: carnes do açougue" Checked="PorPeso_Mudou" Unchecked="PorPeso_Mudou" />
                     <TextBlock x:Name="PorPesoErro" Style="{StaticResource ErroCampo}" />
@@ -105,7 +105,7 @@
             </Grid>
 
             <!-- Pedir antes de acabar: ponto de pedido calculado (semana 4); some sem o script 004 -->
-            <Border x:Name="CampoPedirAntes" Background="{StaticResource Fundo}" CornerRadius="10" Padding="14,10" Margin="0,12,0,0" Visibility="Collapsed">
+            <Border x:Name="CampoPedirAntes" Background="{StaticResource Fundo}" CornerRadius="6" Padding="14,10" Margin="0,12,0,0" Visibility="Collapsed">
                 <StackPanel>
                     <CheckBox x:Name="PedirAntes" Content="Pedir antes de acabar (calcular o aviso pelo prazo de entrega)" />
                     <TextBlock x:Name="DicaPedirAntes" FontSize="12" Style="{StaticResource TextoSuave}" Margin="22,4,0,0" />
@@ -149,7 +149,7 @@
             <!-- Só no cadastro: a primeira compra vira o primeiro lote -->
             <StackPanel x:Name="PrimeiroLote">
                 <Border BorderBrush="{StaticResource Linha}" BorderThickness="0,1,0,0" Margin="0,20,0,14" />
-                <TextBlock Text="Primeiro lote" FontSize="16" FontWeight="Bold" />
+                <TextBlock Text="Primeiro lote" FontFamily="{StaticResource FonteTitulo}" FontSize="16" FontWeight="Bold" />
                 <TextBlock Text="Deixe a quantidade em 0 se a mercadoria ainda não chegou." FontSize="13" Style="{StaticResource TextoSuave}" Margin="0,2,0,12" />
                 <Grid>
                     <Grid.ColumnDefinitions>

@@ -3,23 +3,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="540">
     <!-- Novo lote / edição de lote de um produto -->
-    <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24,24,24,20" Effect="{StaticResource SombraJanela}">
+    <Border Style="{StaticResource CartaoJanela}" Padding="24,24,24,20">
         <StackPanel>
             <DockPanel Margin="0,0,0,18">
                 <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource LinkSuave}" FontSize="24" FontWeight="Normal"
                         VerticalAlignment="Top" Click="Cancelar_Click" ToolTip="Fechar" AutomationProperties.Name="Fechar" />
                 <StackPanel>
-                    <TextBlock x:Name="Titulo" Text="Novo lote" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock x:Name="Titulo" Text="Novo lote" FontFamily="{StaticResource FonteTitulo}" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
                     <TextBlock x:Name="Subtitulo" FontSize="14" Style="{StaticResource TextoSuave}" />
                 </StackPanel>
             </DockPanel>
 
-            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="#F2C4BE" Visibility="Collapsed">
+            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="{StaticResource BordaAvisoVermelho}" Visibility="Collapsed">
                 <TextBlock x:Name="AvisoErroTexto" Foreground="{StaticResource Vermelho600}" FontSize="14" />
             </Border>
 
             <!-- Produto com pedido pendente: sugere registrar a entrega do pedido -->
-            <Border x:Name="AvisoPedido" Style="{StaticResource Aviso}" Background="{StaticResource Azul50}" BorderBrush="#C9DCF1" Visibility="Collapsed">
+            <Border x:Name="AvisoPedido" Style="{StaticResource Aviso}" Background="{StaticResource Azul50}" BorderBrush="{StaticResource BordaAvisoAzul}" Visibility="Collapsed">
                 <StackPanel>
                     <DockPanel>
                         <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaminhao}" Foreground="{StaticResource Azul600}"
@@ -32,7 +32,7 @@
             </Border>
 
             <!-- Entrada pelo código de barras: caixas x unidades por caixa -->
-            <Border x:Name="CampoCaixas" Background="{StaticResource Verde50}" CornerRadius="10" Padding="16,12" Margin="0,0,0,16" Visibility="Collapsed">
+            <Border x:Name="CampoCaixas" Background="{StaticResource Verde50}" CornerRadius="6" Padding="16,12" Margin="0,0,0,16" Visibility="Collapsed">
                 <StackPanel>
                     <TextBlock x:Name="CaixaLida" FontSize="13" Foreground="{StaticResource Verde700}" FontWeight="SemiBold" Margin="0,0,0,8" />
                     <DockPanel>

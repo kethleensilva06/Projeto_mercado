@@ -4,41 +4,34 @@
              SizeChanged="AoRedimensionar">
     <Grid>
         <DockPanel>
-            <!-- Topo -->
-            <Border DockPanel.Dock="Top" Background="White" BorderBrush="{StaticResource Linha}" BorderThickness="0,0,0,1">
+            <!-- Topo: o toldo verde do mercadinho -->
+            <Border DockPanel.Dock="Top" Background="{StaticResource Toldo}">
                 <DockPanel x:Name="Topo" Height="64" MaxWidth="1120" Margin="24,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Style="{StaticResource MarcaQuadrado}">
-                            <TextBlock Text="M" Foreground="White" FontWeight="Bold" FontSize="18"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource MarcaLetra}" />
                         </Border>
-                        <TextBlock Text="Mercado" FontWeight="Bold" FontSize="18" Margin="10,0,0,0" VerticalAlignment="Center" />
+                        <TextBlock Style="{StaticResource MarcaNome}" Foreground="{StaticResource Creme}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Contato" Style="{StaticResource LinkSuave}" FontSize="15" VerticalAlignment="Center"
-                                Margin="0,0,20,0" Click="AbrirContato_Click" />
-                        <Button Content="Acessar sistema" Style="{StaticResource BotaoPrimario}" Height="38" Padding="16,0"
+                        <Button Content="Contato" Style="{StaticResource BotaoLink}" Foreground="{StaticResource Creme}" FontSize="15" VerticalAlignment="Center"
+                                Margin="0,0,20,0" Click="AbrirContato_Click" FocusVisualStyle="{StaticResource FocoVisivelClaro}" />
+                        <Button Content="Acessar sistema" Style="{StaticResource BotaoEtiqueta}" Height="38" Padding="16,0"
                                 FontSize="14" Click="AcessarSistema_Click" />
                     </StackPanel>
                 </DockPanel>
             </Border>
 
             <!-- Rodapé -->
-            <Border DockPanel.Dock="Bottom" Background="White" BorderBrush="{StaticResource Linha}" BorderThickness="0,1,0,0" Padding="0,14">
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource Fundo}" Padding="0,14">
                 <TextBlock Text="Mercado · contato@mercado.com.br · (11) 4000-0000" Style="{StaticResource TextoSuave}"
                            FontSize="13" HorizontalAlignment="Center" />
             </Border>
 
             <!-- Hero -->
-            <Border>
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="White" Offset="0" />
-                        <GradientStop Color="#F4F6F4" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
+            <Grid Background="{StaticResource Fundo}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel MaxWidth="1120" Margin="24,40" VerticalAlignment="Center">
+                    <StackPanel MaxWidth="1120" Margin="24,56,24,40" VerticalAlignment="Center">
                         <Grid x:Name="HeroGrade">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1.1*" />
@@ -46,11 +39,11 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel VerticalAlignment="Center" Margin="0,0,56,0" x:Name="HeroTexto">
-                                <Border Style="{StaticResource Pilula}" Margin="0,0,0,14">
-                                    <TextBlock Text="Gestão para mercados" Foreground="{StaticResource Verde700}" FontSize="13" FontWeight="SemiBold" />
+                                <Border Style="{StaticResource Pilula}" Margin="0,0,0,16">
+                                    <TextBlock Text="Gestão para mercados" Foreground="{StaticResource Toldo}" FontSize="13" FontWeight="Bold" />
                                 </Border>
-                                <TextBlock x:Name="Titulo" Text="O sistema completo para o seu mercado" FontSize="44" FontWeight="Bold"
-                                           LineHeight="50" LineStackingStrategy="BlockLineHeight" Margin="0,0,0,16" />
+                                <TextBlock x:Name="Titulo" Text="O sistema completo para o seu mercado" FontFamily="{StaticResource FonteTitulo}" FontSize="50" FontWeight="ExtraBold"
+                                           LineHeight="53" LineStackingStrategy="BlockLineHeight" Margin="0,0,0,18" />
                                 <TextBlock Style="{StaticResource TextoSuave}" FontSize="18" MaxWidth="520" HorizontalAlignment="Left" Margin="0,0,0,26"
                                            Text="Login, estoque, fornecedores e caixa integrados, com fechamento automático do dia — tudo em um só lugar." />
                                 <WrapPanel>
@@ -59,32 +52,35 @@
                                 </WrapPanel>
                             </StackPanel>
 
-                            <!-- Prévia ilustrativa do resumo do dia -->
-                            <Border x:Name="Previa" Grid.Column="1" Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24"
-                                    Effect="{StaticResource SombraCartao}" VerticalAlignment="Center">
+                            <!-- Prévia ilustrativa do resumo do dia: papel levemente torto, com as etiquetas de preço -->
+                            <Border x:Name="Previa" Grid.Column="1" Style="{StaticResource CartaoBorda}" CornerRadius="2" Padding="24"
+                                    Effect="{StaticResource SombraCartao}" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" Margin="0,0,8,8">
+                                <Border.RenderTransform>
+                                    <RotateTransform Angle="1.2" />
+                                </Border.RenderTransform>
                                 <StackPanel>
-                                    <TextBlock Text="Resumo do dia" FontWeight="Bold" Margin="0,0,0,16" />
-                                    <UniformGrid Columns="2" Margin="0,0,0,16">
-                                        <Border Background="{StaticResource Fundo}" CornerRadius="10" Padding="14,12" Margin="0,0,6,0">
-                                            <StackPanel>
-                                                <TextBlock Text="Vendas hoje" Style="{StaticResource TextoSuave}" FontSize="12" />
-                                                <TextBlock Text="R$ 1.284,50" FontSize="20" FontWeight="Bold" />
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Background="{StaticResource Fundo}" CornerRadius="10" Padding="14,12" Margin="6,0,0,0">
-                                            <StackPanel>
-                                                <TextBlock Text="Ticket médio" Style="{StaticResource TextoSuave}" FontSize="12" />
-                                                <TextBlock Text="R$ 40,10" FontSize="20" FontWeight="Bold" />
-                                            </StackPanel>
-                                        </Border>
+                                    <TextBlock Text="Resumo do dia" FontFamily="{StaticResource FonteTitulo}" FontSize="20" FontWeight="ExtraBold" Margin="0,0,0,16" />
+                                    <UniformGrid Columns="2" Margin="0,0,0,18">
+                                        <StackPanel Margin="0,0,6,0">
+                                            <TextBlock Text="Vendas hoje" Style="{StaticResource TextoSuave}" FontSize="12" />
+                                            <Border Style="{StaticResource EtiquetaPreco}" Margin="0,4,0,0">
+                                                <TextBlock Text="R$ 1.284,50" Style="{StaticResource EtiquetaPrecoTexto}" FontSize="20" />
+                                            </Border>
+                                        </StackPanel>
+                                        <StackPanel Margin="6,0,0,0">
+                                            <TextBlock Text="Ticket médio" Style="{StaticResource TextoSuave}" FontSize="12" />
+                                            <Border Style="{StaticResource EtiquetaPreco}" Margin="0,4,0,0">
+                                                <TextBlock Text="R$ 40,10" Style="{StaticResource EtiquetaPrecoTexto}" FontSize="20" />
+                                            </Border>
+                                        </StackPanel>
                                     </UniformGrid>
-                                    <Border Background="{StaticResource Ambar50}" CornerRadius="8" Padding="12,10" Margin="0,0,0,12">
-                                        <TextBlock Text="Leite integral 1L com estoque baixo (4 un.)" Foreground="{StaticResource Ambar700}" FontSize="13" />
+                                    <Border BorderBrush="{StaticResource Vermelho600}" BorderThickness="3,0,0,0" Padding="10,2" Margin="0,0,0,12">
+                                        <TextBlock Text="Leite integral 1L com estoque baixo (4 un.)" Foreground="{StaticResource Vermelho600}" FontSize="13" FontWeight="SemiBold" />
                                     </Border>
                                     <ItemsControl x:Name="LinhasPrevia">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border BorderBrush="{StaticResource Linha}" BorderThickness="0,1,0,0" Padding="2,10">
+                                                <Border BorderBrush="{StaticResource LinhaTracejadaForte}" BorderThickness="0,1,0,0" Padding="2,10">
                                                     <DockPanel>
                                                         <TextBlock Text="{Binding Value}" Style="{StaticResource TextoSuave}" FontSize="14" DockPanel.Dock="Right" />
                                                         <TextBlock Text="{Binding Key}" FontSize="14" />
@@ -97,64 +93,67 @@
                             </Border>
                         </Grid>
 
-                        <!-- Módulos do sistema -->
-                        <UniformGrid x:Name="Modulos" Columns="3" Margin="-8,48,-8,0">
-                            <Border Style="{StaticResource CartaoBorda}" Padding="20,18" Margin="8,0,8,10">
-                                <DockPanel>
-                                    <Border Width="44" Height="44" CornerRadius="10" Background="{StaticResource Verde50}" VerticalAlignment="Top" Margin="0,0,14,0">
-                                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaProduto}" Foreground="{StaticResource Verde700}" Width="22" />
+                        <!-- Módulos do sistema: uma faixa só, separada por linhas tracejadas -->
+                        <Border BorderBrush="{StaticResource Tinta}" BorderThickness="0,2,0,0" Margin="0,56,0,0">
+                            <Border BorderBrush="{StaticResource Linha}" BorderThickness="0,0,0,1">
+                                <UniformGrid x:Name="Modulos" Columns="3">
+                                    <Border Padding="22,20">
+                                        <DockPanel>
+                                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaProduto}" Foreground="{StaticResource Toldo}" Width="30"
+                                                            VerticalAlignment="Top" Margin="0,0,14,0" />
+                                            <StackPanel>
+                                                <TextBlock Text="Estoque sempre atualizado" Style="{StaticResource TituloCartao}" Margin="0,0,0,2" />
+                                                <TextBlock Text="Controle de produtos, validade e alerta de estoque baixo." Style="{StaticResource TextoSuave}" FontSize="14" />
+                                            </StackPanel>
+                                        </DockPanel>
                                     </Border>
-                                    <StackPanel>
-                                        <TextBlock Text="Estoque sempre atualizado" FontWeight="Bold" FontSize="16" Margin="0,0,0,2" />
-                                        <TextBlock Text="Controle de produtos, validade e alerta de estoque baixo." Style="{StaticResource TextoSuave}" FontSize="14" />
-                                    </StackPanel>
-                                </DockPanel>
-                            </Border>
-                            <Border Style="{StaticResource CartaoBorda}" Padding="20,18" Margin="8,0,8,10">
-                                <DockPanel>
-                                    <Border Width="44" Height="44" CornerRadius="10" Background="{StaticResource Verde50}" VerticalAlignment="Top" Margin="0,0,14,0">
-                                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaminhao}" Foreground="{StaticResource Verde700}" Width="22" />
+                                    <Border x:Name="Modulo2" Padding="22,20" BorderBrush="{StaticResource LinhaTracejadaForte}" BorderThickness="1,0,0,0">
+                                        <DockPanel>
+                                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaminhao}" Foreground="{StaticResource Toldo}" Width="30"
+                                                            VerticalAlignment="Top" Margin="0,0,14,0" />
+                                            <StackPanel>
+                                                <TextBlock Text="Fornecedores organizados" Style="{StaticResource TituloCartao}" Margin="0,0,0,2" />
+                                                <TextBlock Text="Cadastro e pedidos de reposição em um só lugar." Style="{StaticResource TextoSuave}" FontSize="14" />
+                                            </StackPanel>
+                                        </DockPanel>
                                     </Border>
-                                    <StackPanel>
-                                        <TextBlock Text="Fornecedores organizados" FontWeight="Bold" FontSize="16" Margin="0,0,0,2" />
-                                        <TextBlock Text="Cadastro e pedidos de reposição em um só lugar." Style="{StaticResource TextoSuave}" FontSize="14" />
-                                    </StackPanel>
-                                </DockPanel>
-                            </Border>
-                            <Border Style="{StaticResource CartaoBorda}" Padding="20,18" Margin="8,0,8,10">
-                                <DockPanel>
-                                    <Border Width="44" Height="44" CornerRadius="10" Background="{StaticResource Verde50}" VerticalAlignment="Top" Margin="0,0,14,0">
-                                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaRegistradora}" Foreground="{StaticResource Verde700}" Width="22" />
+                                    <Border x:Name="Modulo3" Padding="22,20" BorderBrush="{StaticResource LinhaTracejadaForte}" BorderThickness="1,0,0,0">
+                                        <DockPanel>
+                                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaRegistradora}" Foreground="{StaticResource Toldo}" Width="30"
+                                                            VerticalAlignment="Top" Margin="0,0,14,0" />
+                                            <StackPanel>
+                                                <TextBlock Text="Caixa rápido e simples" Style="{StaticResource TituloCartao}" Margin="0,0,0,2" />
+                                                <TextBlock Text="Venda, pagamento e comprovante em poucos cliques." Style="{StaticResource TextoSuave}" FontSize="14" />
+                                            </StackPanel>
+                                        </DockPanel>
                                     </Border>
-                                    <StackPanel>
-                                        <TextBlock Text="Caixa rápido e simples" FontWeight="Bold" FontSize="16" Margin="0,0,0,2" />
-                                        <TextBlock Text="Venda, pagamento e comprovante em poucos cliques." Style="{StaticResource TextoSuave}" FontSize="14" />
-                                    </StackPanel>
-                                </DockPanel>
+                                </UniformGrid>
                             </Border>
-                        </UniformGrid>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
-            </Border>
+                <!-- Listra do toldo por cima do começo da página -->
+                <Border Style="{StaticResource FaixaToldo}" VerticalAlignment="Top" />
+            </Grid>
         </DockPanel>
 
         <!-- Janela "Fale com a gente" -->
         <Grid x:Name="JanelaContato" Visibility="Collapsed">
-            <Border Background="#73141E18" MouseLeftButtonDown="FundoContato_Click" />
-            <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24,24,24,20" Width="460" Margin="16"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{StaticResource SombraJanela}">
+            <Border Background="{StaticResource FundoJanela}" MouseLeftButtonDown="FundoContato_Click" />
+            <Border Style="{StaticResource CartaoJanela}" Padding="24,24,24,20" Width="460" Margin="16"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
                     <DockPanel Margin="0,0,0,16">
                         <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource LinkSuave}" FontSize="24" FontWeight="Normal"
                                 VerticalAlignment="Top" Click="FecharContato_Click" ToolTip="Fechar" />
                         <StackPanel>
-                            <TextBlock Text="Fale com a gente" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
+                            <TextBlock Text="Fale com a gente" FontFamily="{StaticResource FonteTitulo}" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
                             <TextBlock Text="Deixe seu contato e retornamos em breve." Style="{StaticResource TextoSuave}" FontSize="14" />
                         </StackPanel>
                     </DockPanel>
 
                     <Border x:Name="AvisoContato" Style="{StaticResource Aviso}" Visibility="Collapsed"
-                            Background="{StaticResource Verde50}" BorderBrush="#BFE0CB">
+                            Background="{StaticResource Verde50}" BorderBrush="{StaticResource BordaAvisoVerde}">
                         <TextBlock x:Name="AvisoContatoTexto" Foreground="{StaticResource Verde700}" FontSize="14" />
                     </Border>
 

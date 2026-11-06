@@ -136,11 +136,12 @@ public partial class AreaInternaView : UserControl
             {
                 var embreve = new Border
                 {
-                    Background = (Brush)FindResource("Fundo"),
-                    CornerRadius = new CornerRadius(9),
-                    Padding = new Thickness(7, 1, 7, 1),
+                    BorderBrush = (Brush)FindResource("CremeTransl60"),
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(3),
+                    Padding = new Thickness(6, 0, 6, 1),
                     VerticalAlignment = VerticalAlignment.Center,
-                    Child = new TextBlock { Text = "em breve", FontSize = 11, FontWeight = FontWeights.SemiBold, Foreground = (Brush)FindResource("Suave") }
+                    Child = new TextBlock { Text = "em breve", FontSize = 11, FontWeight = FontWeights.SemiBold }
                 };
                 DockPanel.SetDock(embreve, Dock.Right);
                 linha.Children.Add(embreve);
@@ -172,9 +173,11 @@ public partial class AreaInternaView : UserControl
         ColunaMenu.Width = compacta ? new GridLength(0) : new GridLength(264);
         BarraCompacta.Visibility = compacta ? Visibility.Visible : Visibility.Collapsed;
         MarcaMenu.Visibility = compacta ? Visibility.Collapsed : Visibility.Visible;
+        ToldoMenu.Visibility = MarcaMenu.Visibility;
+        MenuLateral.Padding = compacta ? new Thickness(14, 26, 14, 20) : new Thickness(14, 0, 14, 20);
         Grid.SetRow(MenuLateral, compacta ? 1 : 0);
         Grid.SetRowSpan(MenuLateral, compacta ? 1 : 2);
-        AreaConteudo.Margin = compacta ? new Thickness(16, 24, 16, 40) : new Thickness(40, 32, 40, 48);
+        AreaConteudo.Margin = compacta ? new Thickness(16, 40, 16, 40) : new Thickness(40, 32, 40, 48);
         MostrarMenuCompacto(false);
     }
 

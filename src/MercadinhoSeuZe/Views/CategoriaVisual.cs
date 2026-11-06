@@ -75,7 +75,7 @@ public static class CategoriaVisual
         return new Border
         {
             Background = (Brush)dono.FindResource(v.Fundo),
-            CornerRadius = new CornerRadius(12),
+            CornerRadius = new CornerRadius(3),
             Padding = new Thickness(8, 3, 10, 3),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center,

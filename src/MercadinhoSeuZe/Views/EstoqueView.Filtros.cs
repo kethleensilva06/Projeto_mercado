@@ -87,7 +87,7 @@ public partial class EstoqueView
         return new Border
         {
             Background = Recurso<Brush>(fundo),
-            CornerRadius = new CornerRadius(14),
+            CornerRadius = new CornerRadius(3),
             Padding = new Thickness(10, 4, 8, 4),
             Margin = new Thickness(0, 0, 8, 8),
             Child = linha
@@ -189,8 +189,7 @@ public partial class EstoqueView
             if (icone is not null)
                 linha.Children.Add(new Border
                 {
-                    Width = 26, Height = 26, CornerRadius = new CornerRadius(13), Margin = new Thickness(-6, 0, 8, 0),
-                    Background = Recurso<Brush>(fundo!),
+                    Width = 26, Height = 26, Margin = new Thickness(-6, 0, 8, 0),
                     Child = new ContentControl { Style = Recurso<Style>("Icone"), Tag = Recurso<Geometry>(icone), Foreground = Recurso<Brush>(cor!), Width = 15 }
                 });
             linha.Children.Add(new TextBlock { Text = nome, VerticalAlignment = VerticalAlignment.Center });
@@ -252,10 +251,8 @@ public partial class EstoqueView
 
         raiz.Content = new Border
         {
-            Style = Recurso<Style>("CartaoBorda"),
-            CornerRadius = new CornerRadius(16),
+            Style = Recurso<Style>("CartaoJanela"),
             Padding = new Thickness(24, 22, 24, 20),
-            Effect = (System.Windows.Media.Effects.Effect)FindResource("SombraJanela"),
             Child = tudo
         };
         raiz.Loaded += (_, _) => mostrar.Focus();

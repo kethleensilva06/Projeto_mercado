@@ -3,18 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="640">
     <!-- Novo pedido de reposição (igual ao modal-pedido de fornecedores.html, com vários itens) -->
-    <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24,24,24,20" Effect="{StaticResource SombraJanela}">
+    <Border Style="{StaticResource CartaoJanela}" Padding="24,24,24,20">
         <StackPanel>
             <DockPanel Margin="0,0,0,18">
                 <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource LinkSuave}" FontSize="24" FontWeight="Normal"
                         VerticalAlignment="Top" Click="Cancelar_Click" ToolTip="Fechar" AutomationProperties.Name="Fechar" />
                 <StackPanel>
-                    <TextBlock Text="Novo pedido de reposição" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock Text="Novo pedido de reposição" FontFamily="{StaticResource FonteTitulo}" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
                     <TextBlock Text="Depois de criar, o pedido abre pronto para enviar pelo WhatsApp ou e-mail." FontSize="14" Style="{StaticResource TextoSuave}" />
                 </StackPanel>
             </DockPanel>
 
-            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="#F2C4BE" Visibility="Collapsed">
+            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="{StaticResource BordaAvisoVermelho}" Visibility="Collapsed">
                 <TextBlock x:Name="AvisoErroTexto" Foreground="{StaticResource Vermelho600}" FontSize="14" />
             </Border>
 
@@ -26,9 +26,9 @@
             <DockPanel Margin="0,18,0,8">
                 <Button x:Name="BotaoOQueFalta" DockPanel.Dock="Right" Style="{StaticResource BotaoLink}" FontSize="13" VerticalAlignment="Bottom"
                         Click="AdicionarOQueFalta_Click" />
-                <TextBlock Text="Itens do pedido" FontSize="16" FontWeight="Bold" />
+                <TextBlock Text="Itens do pedido" FontFamily="{StaticResource FonteTitulo}" FontSize="16" FontWeight="Bold" />
             </DockPanel>
-            <Border BorderBrush="{StaticResource Linha}" BorderThickness="1" CornerRadius="10" Padding="14,4">
+            <Border BorderBrush="{StaticResource Linha}" BorderThickness="1" CornerRadius="6" Padding="14,4">
                 <StackPanel>
                     <StackPanel x:Name="Itens" />
                     <TextBlock x:Name="SemItens" Text="Nenhum produto ainda. Busque abaixo para adicionar." FontSize="14"
@@ -68,7 +68,7 @@
 
             <!-- Prévia da mensagem -->
             <TextBlock Text="Mensagem que vai para o fornecedor" Style="{StaticResource Rotulo}" Margin="0,16,0,6" />
-            <Border Background="{StaticResource Fundo}" CornerRadius="10" Padding="14,10">
+            <Border Background="{StaticResource Fundo}" CornerRadius="6" Padding="14,10">
                 <TextBlock x:Name="Previa" FontSize="14" />
             </Border>
             <TextBlock FontSize="12" Style="{StaticResource TextoSuave}" Margin="0,6,0,0"

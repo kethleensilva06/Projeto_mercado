@@ -149,10 +149,10 @@ public partial class PainelView : UserControl
         var linha = new DockPanel { Margin = new Thickness(0, ListaAvisos.Children.Count == 0 ? 0 : 12, 0, 12) };
         var caixaIcone = new Border
         {
-            Width = 32, Height = 32, CornerRadius = new CornerRadius(8), Margin = new Thickness(0, 0, 12, 0),
+            // Ícone solto, sem quadradinho colorido atrás (o "fundo" não é mais pintado no tema do mercadinho)
+            Margin = new Thickness(0, 1, 12, 0),
             VerticalAlignment = VerticalAlignment.Top,
-            Background = (Brush)FindResource(fundo),
-            Child = new ContentControl { Style = (Style)FindResource("Icone"), Tag = FindResource(icone), Foreground = (Brush)FindResource(cor), Width = 16 }
+            Child = new ContentControl { Style = (Style)FindResource("Icone"), Tag = FindResource(icone), Foreground = (Brush)FindResource(cor), Width = 22 }
         };
         linha.Children.Add(caixaIcone);
 
@@ -164,7 +164,7 @@ public partial class PainelView : UserControl
         linha.Children.Add(conteudo);
 
         if (ListaAvisos.Children.Count > 0)
-            ListaAvisos.Children.Add(new Border { Height = 1, Background = (Brush)FindResource("Linha") });
+            ListaAvisos.Children.Add(new Border { Height = 1, Background = (Brush)FindResource("LinhaTracejada") });
         ListaAvisos.Children.Add(linha);
     }
 

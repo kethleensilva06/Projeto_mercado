@@ -3,16 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="560">
     <!-- Envio do pedido: WhatsApp ou e-mail já com a mensagem escrita -->
-    <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24,24,24,20" Effect="{StaticResource SombraJanela}">
+    <Border Style="{StaticResource CartaoJanela}" Padding="24,24,24,20">
         <StackPanel>
             <DockPanel Margin="0,0,0,16">
                 <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource LinkSuave}" FontSize="24" FontWeight="Normal"
                         VerticalAlignment="Top" Click="Fechar_Click" ToolTip="Fechar" AutomationProperties.Name="Fechar" />
-                <Border DockPanel.Dock="Left" Width="44" Height="44" CornerRadius="22" Background="{StaticResource Verde50}" Margin="0,0,14,0" VerticalAlignment="Top">
+                <Border DockPanel.Dock="Left" Width="44" Height="44" Margin="0,0,14,0" VerticalAlignment="Top">
                     <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeEnviar}" Foreground="{StaticResource Verde700}" Width="20" />
                 </Border>
                 <StackPanel>
-                    <TextBlock x:Name="Titulo" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock x:Name="Titulo" FontFamily="{StaticResource FonteTitulo}" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
                     <TextBlock x:Name="Subtitulo" FontSize="14" Style="{StaticResource TextoSuave}" />
                 </StackPanel>
             </DockPanel>

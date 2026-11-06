@@ -14,30 +14,36 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style x:Key="KpiValor" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="28" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Margin" Value="0,10,0,4" />
+            <Setter Property="FontFamily" Value="{StaticResource FonteTitulo}" />
+            <Setter Property="FontSize" Value="30" />
+            <Setter Property="FontWeight" Value="ExtraBold" />
+            <Setter Property="Margin" Value="0,8,0,6" />
+        </Style>
+        <!-- Valor em dinheiro: etiqueta amarela de preço -->
+        <Style x:Key="KpiEtiqueta" TargetType="Border" BasedOn="{StaticResource EtiquetaPreco}">
+            <Setter Property="Margin" Value="0,10,0,10" />
         </Style>
         <Style x:Key="KpiSub" TargetType="TextBlock" BasedOn="{StaticResource TextoSuave}">
             <Setter Property="FontSize" Value="13" />
         </Style>
 
-        <!-- Atalho (igual a .shortcut do site) -->
+        <!-- Atalho (igual a .shortcut do site): contorno tracejado que fica liso ao passar o mouse -->
         <Style x:Key="Atalho" TargetType="Button">
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Margin" Value="0,0,12,12" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocoVisivel}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Borda" Background="{StaticResource Fundo}" BorderBrush="{StaticResource Linha}"
-                                BorderThickness="1" CornerRadius="10" Padding="14">
+                        <Border x:Name="Borda" Background="{StaticResource Cartao}" BorderBrush="{StaticResource LinhaTracejadaForte}"
+                                BorderThickness="1.5" CornerRadius="6" Padding="14">
                             <ContentPresenter />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Borda" Property="BorderBrush" Value="{StaticResource Verde600}" />
-                                <Setter TargetName="Borda" Property="Background" Value="{StaticResource Verde50}" />
+                                <Setter TargetName="Borda" Property="BorderBrush" Value="{StaticResource Tinta}" />
+                                <Setter TargetName="Borda" Property="Background" Value="White" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -49,8 +55,8 @@
     <StackPanel>
         <!-- Cabeçalho -->
         <DockPanel Margin="0,0,0,28">
-            <Border DockPanel.Dock="Right" Background="White" BorderBrush="{StaticResource Linha}" BorderThickness="1"
-                    CornerRadius="15" Padding="12,6" VerticalAlignment="Bottom"
+            <Border DockPanel.Dock="Right" Background="{StaticResource Cartao}" BorderBrush="{StaticResource Linha}" BorderThickness="1"
+                    CornerRadius="4" Padding="12,6" VerticalAlignment="Bottom"
                     ToolTip="O painel se atualiza sozinho a cada 30 segundos">
                 <StackPanel Orientation="Horizontal">
                     <Ellipse Width="8" Height="8" Fill="{StaticResource Verde600}" VerticalAlignment="Center" Margin="0,0,8,0" />
@@ -58,31 +64,29 @@
                 </StackPanel>
             </Border>
             <StackPanel>
-                <TextBlock x:Name="Saudacao" FontSize="28" FontWeight="Bold" Margin="0,0,0,4" />
+                <TextBlock x:Name="Saudacao" Style="{StaticResource TituloPagina}" />
                 <TextBlock x:Name="DataTurno" Style="{StaticResource TextoSuave}" />
             </StackPanel>
         </DockPanel>
 
-        <!-- Indicadores do dia -->
+        <!-- Indicadores do dia (ícone solto, sem quadradinho atrás) -->
         <UniformGrid x:Name="Kpis" Columns="4" Margin="0,0,-16,4">
             <Border Style="{StaticResource Kpi}">
                 <StackPanel>
                     <DockPanel>
-                        <Border DockPanel.Dock="Right" Width="36" Height="36" CornerRadius="9" Background="{StaticResource Verde50}">
-                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeTendencia}" Foreground="{StaticResource Verde700}" Width="18" />
-                        </Border>
+                        <ContentControl DockPanel.Dock="Right" Style="{StaticResource Icone}" Tag="{StaticResource IconeTendencia}" Foreground="{StaticResource Toldo}" Width="22" />
                         <TextBlock Text="Vendas hoje" Style="{StaticResource KpiRotulo}" />
                     </DockPanel>
-                    <TextBlock x:Name="KpiVendas" Style="{StaticResource KpiValor}" Text="—" />
+                    <Border Style="{StaticResource KpiEtiqueta}">
+                        <TextBlock x:Name="KpiVendas" Style="{StaticResource EtiquetaPrecoTexto}" FontSize="24" Text="—" />
+                    </Border>
                     <TextBlock x:Name="KpiVendasSub" Style="{StaticResource KpiSub}" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource Kpi}">
                 <StackPanel>
                     <DockPanel>
-                        <Border DockPanel.Dock="Right" Width="36" Height="36" CornerRadius="9" Background="{StaticResource Ambar50}">
-                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeTriangulo}" Foreground="{StaticResource Ambar700}" Width="18" />
-                        </Border>
+                        <ContentControl DockPanel.Dock="Right" Style="{StaticResource Icone}" Tag="{StaticResource IconeTriangulo}" Foreground="{StaticResource Ambar700}" Width="22" />
                         <TextBlock Text="Estoque baixo" Style="{StaticResource KpiRotulo}" />
                     </DockPanel>
                     <TextBlock x:Name="KpiEstoque" Style="{StaticResource KpiValor}" Text="—" />
@@ -92,9 +96,7 @@
             <Border Style="{StaticResource Kpi}">
                 <StackPanel>
                     <DockPanel>
-                        <Border DockPanel.Dock="Right" Width="36" Height="36" CornerRadius="9" Background="{StaticResource Azul50}">
-                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaminhao}" Foreground="{StaticResource Azul600}" Width="18" />
-                        </Border>
+                        <ContentControl DockPanel.Dock="Right" Style="{StaticResource Icone}" Tag="{StaticResource IconeCaminhao}" Foreground="{StaticResource Azul600}" Width="22" />
                         <TextBlock Text="Pedidos pendentes" Style="{StaticResource KpiRotulo}" />
                     </DockPanel>
                     <TextBlock x:Name="KpiPedidos" Style="{StaticResource KpiValor}" Text="—" />
@@ -104,12 +106,12 @@
             <Border Style="{StaticResource Kpi}">
                 <StackPanel>
                     <DockPanel>
-                        <Border DockPanel.Dock="Right" Width="36" Height="36" CornerRadius="9" Background="{StaticResource Verde50}">
-                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCarteira}" Foreground="{StaticResource Verde700}" Width="18" />
-                        </Border>
+                        <ContentControl DockPanel.Dock="Right" Style="{StaticResource Icone}" Tag="{StaticResource IconeCarteira}" Foreground="{StaticResource Toldo}" Width="22" />
                         <TextBlock Text="Ticket médio" Style="{StaticResource KpiRotulo}" />
                     </DockPanel>
-                    <TextBlock x:Name="KpiTicket" Style="{StaticResource KpiValor}" Text="—" />
+                    <Border Style="{StaticResource KpiEtiqueta}">
+                        <TextBlock x:Name="KpiTicket" Style="{StaticResource EtiquetaPrecoTexto}" FontSize="24" Text="—" />
+                    </Border>
                     <TextBlock Text="Nas vendas de hoje" Style="{StaticResource KpiSub}" />
                 </StackPanel>
             </Border>
@@ -128,13 +130,11 @@
 
             <Border x:Name="CartaoAtalhos" Style="{StaticResource CartaoBorda}" Padding="24,22,12,10" Margin="0,0,20,20" VerticalAlignment="Top">
                 <StackPanel>
-                    <TextBlock Text="Acesso rápido" FontSize="16" FontWeight="Bold" Margin="0,0,0,16" />
+                    <TextBlock Text="Acesso rápido" Style="{StaticResource TituloCartao}" Margin="0,0,0,16" />
                     <UniformGrid x:Name="Atalhos" Columns="2">
                         <Button Style="{StaticResource Atalho}" Tag="Estoque" Click="Atalho_Click" AutomationProperties.Name="Novo produto">
                             <DockPanel>
-                                <Border Width="40" Height="40" CornerRadius="10" Background="White" BorderBrush="{StaticResource Linha}" BorderThickness="1" Margin="0,0,12,0">
-                                    <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaProduto}" Foreground="{StaticResource Verde700}" Width="20" />
-                                </Border>
+                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaProduto}" Foreground="{StaticResource Toldo}" Width="26" Margin="0,0,12,0" VerticalAlignment="Center" />
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="Novo produto" FontWeight="Bold" />
                                     <TextBlock Text="Cadastrar no estoque" FontSize="13" Style="{StaticResource TextoSuave}" />
@@ -143,9 +143,7 @@
                         </Button>
                         <Button Style="{StaticResource Atalho}" Tag="Fornecedores" Click="Atalho_Click" AutomationProperties.Name="Novo pedido">
                             <DockPanel>
-                                <Border Width="40" Height="40" CornerRadius="10" Background="White" BorderBrush="{StaticResource Linha}" BorderThickness="1" Margin="0,0,12,0">
-                                    <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaminhao}" Foreground="{StaticResource Verde700}" Width="20" />
-                                </Border>
+                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaminhao}" Foreground="{StaticResource Toldo}" Width="26" Margin="0,0,12,0" VerticalAlignment="Center" />
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="Novo pedido" FontWeight="Bold" />
                                     <TextBlock Text="Reposição com fornecedor" FontSize="13" Style="{StaticResource TextoSuave}" />
@@ -154,9 +152,7 @@
                         </Button>
                         <Button Style="{StaticResource Atalho}" Tag="caixa" Click="Atalho_Click" AutomationProperties.Name="Abrir caixa">
                             <DockPanel>
-                                <Border Width="40" Height="40" CornerRadius="10" Background="White" BorderBrush="{StaticResource Linha}" BorderThickness="1" Margin="0,0,12,0">
-                                    <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaRegistradora}" Foreground="{StaticResource Verde700}" Width="20" />
-                                </Border>
+                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaRegistradora}" Foreground="{StaticResource Toldo}" Width="26" Margin="0,0,12,0" VerticalAlignment="Center" />
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock x:Name="AtalhoCaixa" Text="Abrir caixa" FontWeight="Bold" />
                                     <TextBlock Text="Registrar vendas" FontSize="13" Style="{StaticResource TextoSuave}" />
@@ -165,9 +161,7 @@
                         </Button>
                         <Button Style="{StaticResource Atalho}" Tag="Fechamento do dia" Click="Atalho_Click" AutomationProperties.Name="Fechar o dia">
                             <DockPanel>
-                                <Border Width="40" Height="40" CornerRadius="10" Background="White" BorderBrush="{StaticResource Linha}" BorderThickness="1" Margin="0,0,12,0">
-                                    <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeFechamento}" Foreground="{StaticResource Verde700}" Width="20" />
-                                </Border>
+                                <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeFechamento}" Foreground="{StaticResource Toldo}" Width="26" Margin="0,0,12,0" VerticalAlignment="Center" />
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="Fechar o dia" FontWeight="Bold" />
                                     <TextBlock Text="Resumo e conferência" FontSize="13" Style="{StaticResource TextoSuave}" />
@@ -183,7 +177,7 @@
                     <DockPanel Margin="0,0,0,16">
                         <Button DockPanel.Dock="Right" Content="Ver estoque" Style="{StaticResource BotaoLink}" Tag="estoque"
                                 Click="Atalho_Click" VerticalAlignment="Center" />
-                        <TextBlock Text="Avisos recentes" FontSize="16" FontWeight="Bold" />
+                        <TextBlock Text="Avisos recentes" Style="{StaticResource TituloCartao}" />
                     </DockPanel>
                     <StackPanel x:Name="ListaAvisos" />
                 </StackPanel>

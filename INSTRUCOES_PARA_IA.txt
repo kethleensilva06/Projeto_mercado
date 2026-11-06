@@ -13,8 +13,24 @@ na nuvem para vários funcionários usarem ao mesmo tempo.
 - Versionamento: git. Mensagens de commit em português.
 - Visual: segue o projeto de referência https://github.com/kethleensilva06/Projeto_mercado
   (site em HTML/CSS; as telas do Figma estão na pasta figma/ desse repositório).
-  Cores, textos, ícones e nomes vêm de lá: nome "Mercado", logo "M" verde,
+  Cores, textos, ícones e nomes vêm de lá: nome "Mercado", logo "M" em etiqueta amarela,
   perfis "Gerente" e "Operador".
+- Tema "mercadinho de bairro" (igual a css/tema.css do site, desde 23/10/2026; tudo em App.xaml):
+  fundo papel #F5EFE3 (Fundo), cartão #FFFDF8 (Cartao), tinta #24211C (Tinta), texto suave #655D50
+  (Suave), linha #E2D9C8 (Linha), borda de campo/botão secundário/chip #8E8473 (LinhaForte),
+  toldo verde #1E5B38 (Toldo, escuro #143F27 ToldoEscuro), creme #FBF6EA (Creme), etiqueta amarela
+  #F6CF3A (Etiqueta), vermelho tomate #B5371C (Vermelho600).
+  Fontes embutidas no .exe (Assets/Fontes, licença SIL OFL, arquivos OFL-*.txt junto): Bricolage
+  Grotesque nos títulos e números (FonteTitulo, estilos TituloPagina e TituloCartao) e Figtree no
+  texto (FonteTexto, padrão da janela).
+  Acabamento: cantos de 3 a 8 px; sem sombra borrada (só a "carimbada", deslocada e sem borrão);
+  ícones soltos, sem quadradinho colorido atrás; toldo listrado (estilo FaixaToldo) no topo da tela
+  inicial, no menu lateral e no login; menu lateral verde com o item ativo em etiqueta amarela;
+  valores em dinheiro em etiqueta de preço (EtiquetaPreco + EtiquetaPrecoTexto); chips como
+  etiquetinhas (ativo amarelo); contadores de Estoque e Fornecedores numa faixa só (FaixaKpis + Kpi,
+  Tag="ativo" no escolhido); tabelas com cabeçalho sublinhado em tinta (CabecalhoTabela) e linhas
+  tracejadas (pincel LinhaTracejada); janelas por cima da tela com faixa verde no alto (CartaoJanela);
+  foco do teclado com contorno verde-escuro de 3 px (FocoVisivel; FocoVisivelClaro sobre o verde).
 
 2. ESTRUTURA
 ------------
@@ -25,8 +41,9 @@ database/                  Scripts SQL, numerados, para rodar no SQL Editor do S
   004_semana4_fornecedores.sql  Tabelas fornecedores, pedidos e pedido_itens, coluna produtos.fornecedor_id e as
                            funções criar_pedido e registrar_entrega (tudo ou nada). RLS: só o gerente.
 src/MercadinhoSeuZe/
-  App.xaml                 Cores, ícones (Geometry) e estilos de botões/campos/listas de escolha, indicadores
-                           quadrados (Kpi), chips e cabeçalho de tabela. Reutilize, não duplique.
+  App.xaml                 Cores, fontes, ícones (Geometry), toldo, linha tracejada e estilos de botões/campos/
+                           listas de escolha, etiqueta de preço, faixa de contadores (Kpi), chips, cabeçalho de
+                           tabela e janelas. Reutilize, não duplique.
   MainWindow.xaml(.cs)     Janela única; troca as telas com MostrarInicio/MostrarLogin/MostrarAreaDoUsuario.
   Models/                  Perfil (Gerente/Operador), Sessao (usuário logado), Painel, Estoque (Produto, Lote),
                            Fornecedores (Fornecedor, Pedido, ItemPedido, MensagemPedido).
@@ -40,6 +57,7 @@ src/MercadinhoSeuZe/
                            EntregaJanela) abrem com AreaInternaView.AbrirJanela; Esc fecha.
                            Formulario.cs: leitura de preço, inteiro e data (dd/mm/aaaa) e erros de campo.
   Assets/mercado.ico       Ícone do programa.
+  Assets/Fontes/           Bricolage Grotesque e Figtree (.ttf, embutidas como Resource) e as licenças OFL.
 publicar.ps1               Gera publish/MercadinhoSeuZe.exe (feche o .exe aberto antes).
                            Com -Desenvolvimento gera publish-dev/ com os atalhos de teste (Alt+1 no login,
                            Alt+2 no Estoque e em Fornecedores).

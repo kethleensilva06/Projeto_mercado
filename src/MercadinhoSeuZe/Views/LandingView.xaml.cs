@@ -47,8 +47,10 @@ public partial class LandingView : UserControl
         ColunaPrevia.Width = estreita ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
         HeroTexto.Margin = estreita ? new Thickness(0) : new Thickness(0, 0, 56, 0);
         Modulos.Columns = estreita ? 1 : 3;
-        Titulo.FontSize = e.NewSize.Width < 680 ? 28 : 44;
-        Titulo.LineHeight = e.NewSize.Width < 680 ? 32 : 50;
+        // Separador tracejado: ao lado quando em fileira, em cima quando empilhados
+        Modulo2.BorderThickness = Modulo3.BorderThickness = estreita ? new Thickness(0, 1, 0, 0) : new Thickness(1, 0, 0, 0);
+        Titulo.FontSize = e.NewSize.Width < 680 ? 32 : 50;
+        Titulo.LineHeight = e.NewSize.Width < 680 ? 35 : 53;
     }
 
     // ------------------------------------------------------------ Contato

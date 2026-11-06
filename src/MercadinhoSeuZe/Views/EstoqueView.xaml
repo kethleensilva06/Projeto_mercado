@@ -14,13 +14,13 @@
                 </StackPanel>
             </Button>
             <StackPanel Margin="0,0,16,0">
-                <TextBlock Text="Produtos em estoque" FontSize="28" FontWeight="Bold" Margin="0,0,0,4" />
+                <TextBlock Text="Produtos em estoque" Style="{StaticResource TituloPagina}" />
                 <TextBlock x:Name="Resumo" Text="Carregando…" Style="{StaticResource TextoSuave}" />
             </StackPanel>
         </DockPanel>
 
         <!-- Erro ao ler o banco -->
-        <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="#F2C4BE"
+        <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="{StaticResource BordaAvisoVermelho}"
                 Margin="0,0,0,24" Visibility="Collapsed">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Content="Tentar de novo" Style="{StaticResource BotaoLink}" Foreground="{StaticResource Vermelho600}"
@@ -34,11 +34,9 @@
         <!-- Entrada de mercadoria pelo leitor de código de barras -->
         <Border Style="{StaticResource CartaoBorda}" Padding="22,18" Margin="0,0,0,16">
             <DockPanel>
-                <Border DockPanel.Dock="Left" Width="44" Height="44" CornerRadius="10" Background="{StaticResource Verde50}" Margin="0,0,16,0" VerticalAlignment="Center">
-                    <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCodigoBarras}" Foreground="{StaticResource Verde700}" Width="22" />
-                </Border>
+                <ContentControl DockPanel.Dock="Left" Style="{StaticResource Icone}" Tag="{StaticResource IconeCodigoBarras}" Foreground="{StaticResource Toldo}" Width="30" Margin="0,0,16,0" VerticalAlignment="Center" />
                 <StackPanel x:Name="TextoLeitor" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,20,0">
-                    <TextBlock Text="Chegou mercadoria?" FontSize="16" FontWeight="Bold" />
+                    <TextBlock Text="Chegou mercadoria?" FontFamily="{StaticResource FonteTitulo}" FontSize="16" FontWeight="Bold" />
                     <TextBlock Text="Passe o leitor no código de barras da caixa para dar entrada no lote." FontSize="13" Style="{StaticResource TextoSuave}" />
                 </StackPanel>
                 <Grid x:Name="CaixaLeitor" VerticalAlignment="Center" Width="360" HorizontalAlignment="Right">
@@ -52,59 +50,51 @@
             </DockPanel>
         </Border>
 
-        <!-- Indicadores quadrados numa fileira só (clicar filtra a lista; passar o mouse explica) -->
-        <UniformGrid x:Name="Kpis" Rows="1" Columns="5" HorizontalAlignment="Left" Margin="0,0,0,20">
-            <Button Style="{StaticResource Kpi}" Uid="todos" Click="Filtro_Click" AutomationProperties.Name="Mostrar todos os produtos">
-                <Button.ToolTip><TextBlock x:Name="KpiTotalSub" Text="Cadastrados no estoque" /></Button.ToolTip>
-                <StackPanel>
-                    <Border Width="26" Height="26" CornerRadius="7" Background="{StaticResource Verde50}" HorizontalAlignment="Left">
-                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaProduto}" Foreground="{StaticResource Verde700}" Width="15" />
-                    </Border>
-                    <TextBlock x:Name="KpiTotal" Style="{StaticResource KpiValor}" />
-                    <TextBlock Text="Produtos" Style="{StaticResource KpiRotulo}" />
-                </StackPanel>
-            </Button>
-            <Button Style="{StaticResource Kpi}" Uid="baixo" Click="Filtro_Click" AutomationProperties.Name="Filtrar estoque baixo">
-                <Button.ToolTip><TextBlock x:Name="KpiBaixoSub" Text="Abaixo do mínimo cadastrado" /></Button.ToolTip>
-                <StackPanel>
-                    <Border Width="26" Height="26" CornerRadius="7" Background="{StaticResource Ambar50}" HorizontalAlignment="Left">
-                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeRelogio}" Foreground="{StaticResource Ambar700}" Width="16" />
-                    </Border>
-                    <TextBlock x:Name="KpiBaixo" Style="{StaticResource KpiValor}" />
-                    <TextBlock Text="Estoque baixo" Style="{StaticResource KpiRotulo}" />
-                </StackPanel>
-            </Button>
-            <Button Style="{StaticResource Kpi}" Uid="sem" Click="Filtro_Click" AutomationProperties.Name="Filtrar sem estoque">
-                <Button.ToolTip><TextBlock Text="Nenhuma unidade disponível" /></Button.ToolTip>
-                <StackPanel>
-                    <Border Width="26" Height="26" CornerRadius="7" Background="{StaticResource Vermelho50}" HorizontalAlignment="Left">
-                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeAlerta}" Foreground="{StaticResource Vermelho600}" Width="16" />
-                    </Border>
-                    <TextBlock x:Name="KpiSem" Style="{StaticResource KpiValor}" />
-                    <TextBlock Text="Sem estoque" Style="{StaticResource KpiRotulo}" />
-                </StackPanel>
-            </Button>
-            <Button Style="{StaticResource Kpi}" Uid="validade" Click="Filtro_Click" AutomationProperties.Name="Filtrar validade próxima">
-                <Button.ToolTip><TextBlock Text="Ainda não venceu, mas vence em até 30 dias" /></Button.ToolTip>
-                <StackPanel>
-                    <Border Width="26" Height="26" CornerRadius="7" Background="{StaticResource Ambar50}" HorizontalAlignment="Left">
-                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeTriangulo}" Foreground="{StaticResource Ambar700}" Width="16" />
-                    </Border>
-                    <TextBlock x:Name="KpiValidade" Style="{StaticResource KpiValor}" />
-                    <TextBlock Text="Validade próxima" Style="{StaticResource KpiRotulo}" />
-                </StackPanel>
-            </Button>
-            <Button Style="{StaticResource Kpi}" Uid="vencido" Click="Filtro_Click" AutomationProperties.Name="Filtrar vencidos">
-                <Button.ToolTip><TextBlock Text="Tem lote com a validade já passada" /></Button.ToolTip>
-                <StackPanel>
-                    <Border Width="26" Height="26" CornerRadius="7" Background="{StaticResource Vermelho50}" HorizontalAlignment="Left">
-                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeTriangulo}" Foreground="{StaticResource Vermelho600}" Width="16" />
-                    </Border>
-                    <TextBlock x:Name="KpiVencido" Style="{StaticResource KpiValor}" />
-                    <TextBlock Text="Vencidos" Style="{StaticResource KpiRotulo}" />
-                </StackPanel>
-            </Button>
-        </UniformGrid>
+        <!-- Faixa de contadores (igual a .kpis-q do site): clicar filtra a lista; passar o mouse explica -->
+        <Border Style="{StaticResource FaixaKpis}">
+            <UniformGrid x:Name="Kpis" Columns="5" Margin="0,0,-2,-2">
+                <Button Style="{StaticResource Kpi}" Uid="todos" Click="Filtro_Click" AutomationProperties.Name="Mostrar todos os produtos">
+                    <Button.ToolTip><TextBlock x:Name="KpiTotalSub" Text="Cadastrados no estoque" /></Button.ToolTip>
+                    <StackPanel>
+                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeCaixaProduto}" Foreground="{StaticResource Verde700}" Width="20" HorizontalAlignment="Left" Margin="0,0,0,2" />
+                        <TextBlock x:Name="KpiTotal" Style="{StaticResource KpiValor}" />
+                        <TextBlock Text="Produtos" Style="{StaticResource KpiRotulo}" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource Kpi}" Uid="baixo" Click="Filtro_Click" AutomationProperties.Name="Filtrar estoque baixo">
+                    <Button.ToolTip><TextBlock x:Name="KpiBaixoSub" Text="Abaixo do mínimo cadastrado" /></Button.ToolTip>
+                    <StackPanel>
+                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeRelogio}" Foreground="{StaticResource Ambar700}" Width="20" HorizontalAlignment="Left" Margin="0,0,0,2" />
+                        <TextBlock x:Name="KpiBaixo" Style="{StaticResource KpiValor}" />
+                        <TextBlock Text="Estoque baixo" Style="{StaticResource KpiRotulo}" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource Kpi}" Uid="sem" Click="Filtro_Click" AutomationProperties.Name="Filtrar sem estoque">
+                    <Button.ToolTip><TextBlock Text="Nenhuma unidade disponível" /></Button.ToolTip>
+                    <StackPanel>
+                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeAlerta}" Foreground="{StaticResource Vermelho600}" Width="20" HorizontalAlignment="Left" Margin="0,0,0,2" />
+                        <TextBlock x:Name="KpiSem" Style="{StaticResource KpiValor}" />
+                        <TextBlock Text="Sem estoque" Style="{StaticResource KpiRotulo}" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource Kpi}" Uid="validade" Click="Filtro_Click" AutomationProperties.Name="Filtrar validade próxima">
+                    <Button.ToolTip><TextBlock Text="Ainda não venceu, mas vence em até 30 dias" /></Button.ToolTip>
+                    <StackPanel>
+                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeTriangulo}" Foreground="{StaticResource Ambar700}" Width="20" HorizontalAlignment="Left" Margin="0,0,0,2" />
+                        <TextBlock x:Name="KpiValidade" Style="{StaticResource KpiValor}" />
+                        <TextBlock Text="Validade próxima" Style="{StaticResource KpiRotulo}" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource Kpi}" Uid="vencido" Click="Filtro_Click" AutomationProperties.Name="Filtrar vencidos">
+                    <Button.ToolTip><TextBlock Text="Tem lote com a validade já passada" /></Button.ToolTip>
+                    <StackPanel>
+                        <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeTriangulo}" Foreground="{StaticResource Vermelho600}" Width="20" HorizontalAlignment="Left" Margin="0,0,0,2" />
+                        <TextBlock x:Name="KpiVencido" Style="{StaticResource KpiValor}" />
+                        <TextBlock Text="Vencidos" Style="{StaticResource KpiRotulo}" />
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+        </Border>
 
         <!-- Lista -->
         <Border Style="{StaticResource CartaoBorda}" Padding="24,22">
@@ -114,9 +104,9 @@
                     <Button x:Name="BotaoFiltros" DockPanel.Dock="Right" Style="{StaticResource BotaoFantasma}" Margin="12,0,0,0"
                             Padding="16,0" Click="AbrirFiltros_Click" AutomationProperties.Name="Abrir filtros">
                         <StackPanel Orientation="Horizontal">
-                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeFiltro}" Foreground="{StaticResource Verde700}" Width="18" Margin="0,0,8,0" />
+                            <ContentControl Style="{StaticResource Icone}" Tag="{StaticResource IconeFiltro}" Foreground="{StaticResource Toldo}" Width="18" Margin="0,0,8,0" />
                             <TextBlock Text="Filtros" VerticalAlignment="Center" />
-                            <Border x:Name="ContadorFiltros" Background="{StaticResource Verde600}" CornerRadius="10" MinWidth="20" Height="20"
+                            <Border x:Name="ContadorFiltros" Background="{StaticResource Vermelho600}" CornerRadius="3" MinWidth="20" Height="20"
                                     Padding="6,0" Margin="8,0,0,0" Visibility="Collapsed">
                                 <TextBlock x:Name="ContadorFiltrosTexto" Foreground="White" FontSize="12" FontWeight="Bold"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -143,7 +133,7 @@
                 </DockPanel>
 
                 <!-- Cabeçalho da tabela -->
-                <Border BorderBrush="{StaticResource Linha}" BorderThickness="0,0,0,1" Padding="0,8">
+                <Border Style="{StaticResource CabecalhoTabela}">
                     <Grid x:Name="CabecalhoTabela">
                         <TextBlock Grid.Column="0" Text="Produto" Style="{StaticResource Cabecalho}" />
                         <TextBlock Grid.Column="1" Text="Categoria" Style="{StaticResource Cabecalho}" />

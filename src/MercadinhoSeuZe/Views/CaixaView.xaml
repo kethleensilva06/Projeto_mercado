@@ -4,7 +4,7 @@
              SizeChanged="AoRedimensionar">
     <StackPanel>
         <StackPanel Margin="0,0,0,28">
-            <TextBlock Text="Caixa" FontSize="28" FontWeight="Bold" Margin="0,0,0,4" />
+            <TextBlock Text="Caixa" Style="{StaticResource TituloPagina}" />
             <TextBlock Text="Registro de vendas do dia" Style="{StaticResource TextoSuave}" />
         </StackPanel>
 
@@ -13,26 +13,30 @@
             <Border Style="{StaticResource CartaoBorda}" Padding="22,20" Margin="0,0,16,16">
                 <StackPanel>
                     <TextBlock Text="Vendas hoje" Style="{StaticResource TextoSuave}" FontSize="14" FontWeight="SemiBold" />
-                    <TextBlock x:Name="Total" FontSize="28" FontWeight="Bold" Margin="0,10,0,0" />
+                    <Border Style="{StaticResource EtiquetaPreco}" Margin="0,10,0,4">
+                        <TextBlock x:Name="Total" Style="{StaticResource EtiquetaPrecoTexto}" FontSize="26" />
+                    </Border>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource CartaoBorda}" Padding="22,20" Margin="0,0,16,16">
                 <StackPanel>
                     <TextBlock Text="Vendas realizadas" Style="{StaticResource TextoSuave}" FontSize="14" FontWeight="SemiBold" />
-                    <TextBlock x:Name="Quantidade" FontSize="28" FontWeight="Bold" Margin="0,10,0,0" />
+                    <TextBlock x:Name="Quantidade" FontFamily="{StaticResource FonteTitulo}" FontSize="28" FontWeight="ExtraBold" Margin="0,10,0,0" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource CartaoBorda}" Padding="22,20" Margin="0,0,16,16">
                 <StackPanel>
                     <TextBlock Text="Ticket médio" Style="{StaticResource TextoSuave}" FontSize="14" FontWeight="SemiBold" />
-                    <TextBlock x:Name="Ticket" FontSize="28" FontWeight="Bold" Margin="0,10,0,0" />
+                    <Border Style="{StaticResource EtiquetaPreco}" Margin="0,10,0,4">
+                        <TextBlock x:Name="Ticket" Style="{StaticResource EtiquetaPrecoTexto}" FontSize="26" />
+                    </Border>
                 </StackPanel>
             </Border>
         </UniformGrid>
 
         <Border Style="{StaticResource CartaoBorda}" Padding="24,22">
             <StackPanel>
-                <TextBlock Text="Em desenvolvimento" FontSize="16" FontWeight="Bold" Margin="0,0,0,8" />
+                <TextBlock Text="Em desenvolvimento" FontFamily="{StaticResource FonteTitulo}" FontSize="16" FontWeight="Bold" Margin="0,0,0,8" />
                 <TextBlock Style="{StaticResource TextoSuave}"
                            Text="Esta tela será desenvolvida na etapa do Caixa (semana 5): montagem da venda, pagamento e baixa automática no estoque." />
             </StackPanel>

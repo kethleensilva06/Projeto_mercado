@@ -77,7 +77,7 @@ public partial class EntregaJanela : UserControl
             Grid.SetColumn(colValidade, 3);
             grade.Children.Add(colValidade);
 
-            Itens.Children.Add(new Border { BorderBrush = (Brush)FindResource("Linha"), BorderThickness = new Thickness(0, 0, 0, 1), Child = grade });
+            Itens.Children.Add(new Border { BorderBrush = (Brush)FindResource("LinhaTracejada"), BorderThickness = new Thickness(0, 0, 0, 1), Child = grade });
             _linhas.Add(new Linha(item, produto, recebido, recebidoErro, validade, validadeErro));
         }
 

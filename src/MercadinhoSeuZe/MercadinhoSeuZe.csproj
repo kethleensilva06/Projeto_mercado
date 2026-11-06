@@ -33,6 +33,11 @@
     <Resource Include="Assets\mercado.ico" />
   </ItemGroup>
 
+  <!-- Fontes do visual (Bricolage Grotesque e Figtree, licença SIL OFL: Assets\Fontes\OFL-*.txt) -->
+  <ItemGroup>
+    <Resource Include="Assets\Fontes\*.ttf" />
+  </ItemGroup>
+
   <!-- A configuração do Supabase vai embutida dentro do .exe -->
   <ItemGroup>
     <EmbeddedResource Include="appsettings.json" Condition="Exists('appsettings.json')" LogicalName="appsettings.json" />

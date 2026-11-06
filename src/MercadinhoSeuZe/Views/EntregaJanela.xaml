@@ -3,18 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="620">
     <!-- Registrar a entrega de um pedido: confere o que chegou e cria os lotes no estoque -->
-    <Border Style="{StaticResource CartaoBorda}" CornerRadius="16" Padding="24,24,24,20" Effect="{StaticResource SombraJanela}">
+    <Border Style="{StaticResource CartaoJanela}" Padding="24,24,24,20">
         <StackPanel>
             <DockPanel Margin="0,0,0,18">
                 <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource LinkSuave}" FontSize="24" FontWeight="Normal"
                         VerticalAlignment="Top" Click="Cancelar_Click" ToolTip="Fechar" AutomationProperties.Name="Fechar" />
                 <StackPanel>
-                    <TextBlock Text="Registrar entrega" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock Text="Registrar entrega" FontFamily="{StaticResource FonteTitulo}" FontSize="22" FontWeight="Bold" Margin="0,0,0,2" />
                     <TextBlock x:Name="Subtitulo" FontSize="14" Style="{StaticResource TextoSuave}" />
                 </StackPanel>
             </DockPanel>
 
-            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="#F2C4BE" Visibility="Collapsed">
+            <Border x:Name="AvisoErro" Style="{StaticResource Aviso}" Background="{StaticResource Vermelho50}" BorderBrush="{StaticResource BordaAvisoVermelho}" Visibility="Collapsed">
                 <TextBlock x:Name="AvisoErroTexto" Foreground="{StaticResource Vermelho600}" FontSize="14" />
             </Border>
 

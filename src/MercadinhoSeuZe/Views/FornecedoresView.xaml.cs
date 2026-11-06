@@ -145,6 +145,8 @@ public partial class FornecedoresView : UserControl
 
         MostrarSugestoes();
         MostrarChips(ativos, situacoes);
+        foreach (var kpi in Kpis.Children.OfType<Button>())
+            kpi.Tag = kpi.Uid == _filtro ? "ativo" : null;
 
         var termo = Busca.Text.Trim();
         var lista = (_filtro == "inativos" ? _fornecedores.Where(f => !f.Ativo) : ativos)
@@ -267,9 +269,9 @@ public partial class FornecedoresView : UserControl
 
         return new Border
         {
-            BorderBrush = Recurso<Brush>("Linha"),
+            BorderBrush = Recurso<Brush>("LinhaTracejada"),
             BorderThickness = new Thickness(0, 0, 0, 1),
-            Background = aberto ? Recurso<Brush>("Fundo") : Brushes.Transparent,
+            Background = aberto ? Recurso<Brush>("LinhaAberta") : Brushes.Transparent,
             Opacity = f.Ativo ? 1 : 0.75,
             Child = bloco
         };
@@ -328,7 +330,7 @@ public partial class FornecedoresView : UserControl
     private Border Etiqueta(string texto, string fundo, string cor) => new()
     {
         Background = Recurso<Brush>(fundo),
-        CornerRadius = new CornerRadius(11),
+        CornerRadius = new CornerRadius(3),
         Padding = new Thickness(10, 3, 10, 3),
         HorizontalAlignment = HorizontalAlignment.Left,
         VerticalAlignment = VerticalAlignment.Center,
@@ -442,7 +444,7 @@ public partial class FornecedoresView : UserControl
         var todos = _todosProdutos.Contains(f.Id);
         var mostrar = todos ? produtos : produtos.Where(p => p.PrecisaRepor).Take(12).ToList();
         if (mostrar.Count == 0) mostrar = produtos.Take(6).ToList();
-        var caixa = new Border { Background = Brushes.White, BorderBrush = Recurso<Brush>("Linha"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 4, 14, 4) };
+        var caixa = new Border { Background = Recurso<Brush>("Cartao"), BorderBrush = Recurso<Brush>("Linha"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 4, 14, 4) };
         var linhas = new StackPanel();
         foreach (var p in mostrar)
         {
@@ -513,8 +515,8 @@ public partial class FornecedoresView : UserControl
             var linha = new DockPanel();
             var caixa = new Border
             {
-                Background = Brushes.White, BorderBrush = Recurso<Brush>("Linha"), BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10), Padding = new Thickness(16, 10, 12, 10), Margin = new Thickness(0, 0, 0, 8),
+                Background = Recurso<Brush>("Cartao"), BorderBrush = Recurso<Brush>("Linha"), BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(4), Padding = new Thickness(16, 10, 12, 10), Margin = new Thickness(0, 0, 0, 8),
                 Opacity = p.Cancelado ? 0.65 : 1, Child = linha
             };
 
@@ -627,7 +629,7 @@ public partial class FornecedoresView : UserControl
         var linha = new DockPanel();
         var icone = new Border
         {
-            Width = 36, Height = 36, CornerRadius = new CornerRadius(9), Background = Recurso<Brush>("Ambar50"), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Center,
             Child = new ContentControl { Style = Recurso<Style>("Icone"), Tag = Recurso<Geometry>("IconeTriangulo"), Foreground = Recurso<Brush>("Ambar700"), Width = 18 }
         };
         DockPanel.SetDock(icone, Dock.Left);
@@ -644,8 +646,8 @@ public partial class FornecedoresView : UserControl
         linha.Children.Add(corpo);
         return new Border
         {
-            Background = Recurso<Brush>("Ambar50"), BorderBrush = Recurso<Brush>("Linha"), BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(12), Padding = new Thickness(18, 14, 18, 14), Margin = new Thickness(0, 0, 0, 12), Child = linha
+            Background = Recurso<Brush>("EtiquetaClara"), BorderBrush = Recurso<Brush>("BordaAvisoAmbar"), BorderThickness = new Thickness(4, 1, 1, 1),
+            CornerRadius = new CornerRadius(4), Padding = new Thickness(18, 14, 18, 14), Margin = new Thickness(0, 0, 0, 12), Child = linha
         };
     }
 
@@ -770,9 +772,8 @@ public partial class FornecedoresView : UserControl
 
     private void AoRedimensionar(object sender, SizeChangedEventArgs e)
     {
-        var lado = Math.Max(96, Math.Min(140, (e.NewSize.Width - 4 * 12) / 4));
-        foreach (var kpi in Kpis.Children.OfType<Button>())
-            kpi.Width = kpi.Height = lado;
+        // Faixa de contadores: quatro lado a lado; em janela estreita, dois por linha
+        Kpis.Columns = e.NewSize.Width < 620 ? 2 : 4;
         var compacta = e.NewSize.Width < 760;
         if (compacta == _compacta) return;
         _compacta = compacta;

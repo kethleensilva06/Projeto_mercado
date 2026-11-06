@@ -132,6 +132,9 @@ public partial class EstoqueView : UserControl
         Resumo.Text = $"{Plural(_produtos.Count, "produto cadastrado", "produtos cadastrados")} · {nBaixo} com estoque baixo · {nAviso} para repor em breve · " +
                       $"{nSem} sem estoque · {nValidade} com validade próxima · {nVencido} vencidos";
 
+        foreach (var kpi in Kpis.Children.OfType<Button>())
+            kpi.Tag = kpi.Uid == _filtro ? "ativo" : null;
+
         var termo = Busca.Text.Trim();
         IEnumerable<Produto> lista = _produtos
             .Where(p => PassaBusca(p, termo) && PassaSituacao(p, _filtro) && PassaCategoria(p, _categoria) && PassaTipo(p, _tipo))
@@ -224,7 +227,7 @@ public partial class EstoqueView : UserControl
             nome.Children.Add(new Border
             {
                 Background = Recurso<Brush>("Fundo"), BorderBrush = Recurso<Brush>("Linha"), BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10), Padding = new Thickness(7, 1, 7, 1), Margin = new Thickness(0, 0, 8, 0),
+                CornerRadius = new CornerRadius(3), Padding = new Thickness(7, 1, 7, 1), Margin = new Thickness(0, 0, 8, 0),
                 VerticalAlignment = VerticalAlignment.Center, ToolTip = "Vendido por quilo: estoque, mínimo e lotes em kg",
                 Child = new TextBlock { Text = "por kg", FontSize = 12, FontWeight = FontWeights.SemiBold, Foreground = Recurso<Brush>("Suave") }
             });
@@ -270,9 +273,9 @@ public partial class EstoqueView : UserControl
 
         return new Border
         {
-            BorderBrush = Recurso<Brush>("Linha"),
+            BorderBrush = Recurso<Brush>("LinhaTracejada"),
             BorderThickness = new Thickness(0, 0, 0, 1),
-            Background = aberto ? Recurso<Brush>("Fundo") : Brushes.Transparent,
+            Background = aberto ? Recurso<Brush>("LinhaAberta") : Brushes.Transparent,
             Child = bloco
         };
     }
@@ -323,10 +326,10 @@ public partial class EstoqueView : UserControl
             var linha = new DockPanel { Margin = new Thickness(0, 0, 0, 8) };
             var caixa = new Border
             {
-                Background = Brushes.White,
+                Background = Recurso<Brush>("Cartao"),
                 BorderBrush = Recurso<Brush>("Linha"),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(16, 10, 12, 10),
                 Opacity = l.Esgotado ? 0.65 : 1,
                 Child = linha
@@ -469,10 +472,10 @@ public partial class EstoqueView : UserControl
         var barra = new Grid { Height = 6, Margin = new Thickness(0, 4, 0, 0) };
         barra.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(proporcao, GridUnitType.Star) });
         barra.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1 - proporcao, GridUnitType.Star) });
-        var fundo = new Border { Background = Recurso<Brush>("Linha"), CornerRadius = new CornerRadius(3) };
+        var fundo = new Border { Background = Recurso<Brush>("Linha"), CornerRadius = new CornerRadius(1) };
         Grid.SetColumnSpan(fundo, 2);
         barra.Children.Add(fundo);
-        barra.Children.Add(new Border { Background = Recurso<Brush>("Verde600"), CornerRadius = new CornerRadius(3) });
+        barra.Children.Add(new Border { Background = Recurso<Brush>("Verde600"), CornerRadius = new CornerRadius(1) });
         bloco.Children.Add(barra);
         bloco.ToolTip = $"{p.Formatar(l.Vendido)} de {p.Formatar(l.QuantidadeInicial)} já saíram deste lote";
         return bloco;
@@ -624,10 +627,8 @@ public partial class EstoqueView : UserControl
 
     private void AoRedimensionar(object sender, SizeChangedEventArgs e)
     {
-        // Cinco quadrados numa fileira: diminuem junto com a janela (no máximo 140 px)
-        var lado = Math.Max(96, Math.Min(140, (e.NewSize.Width - 5 * 12) / 5));
-        foreach (var kpi in Kpis.Children.OfType<Button>())
-            kpi.Width = kpi.Height = lado;
+        // Faixa de contadores: cinco lado a lado; em janela estreita, três por linha
+        Kpis.Columns = e.NewSize.Width < 620 ? 3 : 5;
         var compacta = e.NewSize.Width < 760;
         if (compacta == _compacta) return;
         _compacta = compacta;
@@ -669,7 +670,7 @@ public partial class EstoqueView : UserControl
         return new Border
         {
             Background = Recurso<Brush>(fundo),
-            CornerRadius = new CornerRadius(10),
+            CornerRadius = new CornerRadius(3),
             Padding = new Thickness(8, 2, 8, 2),
             VerticalAlignment = VerticalAlignment.Center,
             Visibility = sv.Alerta || mostrarOk ? Visibility.Visible : Visibility.Collapsed,

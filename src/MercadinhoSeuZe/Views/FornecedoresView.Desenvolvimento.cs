@@ -102,10 +102,8 @@ public partial class FornecedoresView
             Width = 520,
             Content = new Border
             {
-                Style = Recurso<Style>("CartaoBorda"),
-                CornerRadius = new CornerRadius(16),
+                Style = Recurso<Style>("CartaoJanela"),
                 Padding = new Thickness(24, 22, 24, 20),
-                Effect = (System.Windows.Media.Effects.Effect)FindResource("SombraJanela"),
                 Child = corpo
             }
         };

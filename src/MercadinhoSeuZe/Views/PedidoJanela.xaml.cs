@@ -145,7 +145,7 @@ public partial class PedidoJanela : UserControl
         nome.Children.Add(Situacao(p));
         linha.Children.Add(nome);
 
-        var bloco = new Border { BorderBrush = (Brush)FindResource("Linha"), BorderThickness = new Thickness(0, Itens.Children.Count == 0 ? 0 : 1, 0, 0), Child = linha };
+        var bloco = new Border { BorderBrush = (Brush)FindResource("LinhaTracejada"), BorderThickness = new Thickness(0, Itens.Children.Count == 0 ? 0 : 1, 0, 0), Child = linha };
         remover.Click += (_, _) =>
         {
             _itens.Remove(item);
@@ -282,7 +282,7 @@ public partial class PedidoJanela : UserControl
         borda.SetValue(Border.BackgroundProperty, Brushes.White);
         borda.SetValue(Border.BorderBrushProperty, FindResource("Linha"));
         borda.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-        borda.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
+        borda.SetValue(Border.CornerRadiusProperty, new CornerRadius(4));
         borda.SetValue(Border.PaddingProperty, new Thickness(12, 8, 12, 8));
         borda.AppendChild(new FrameworkElementFactory(typeof(ContentPresenter)));
         var modelo = new ControlTemplate(typeof(Button)) { VisualTree = borda };

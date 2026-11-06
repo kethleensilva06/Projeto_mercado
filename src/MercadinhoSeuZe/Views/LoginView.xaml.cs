@@ -202,10 +202,10 @@ public partial class LoginView : UserControl
     private void MostrarAviso(string texto, TipoAviso tipo)
     {
         var (fundo, borda, cor) = tipo == TipoAviso.Erro
-            ? ("Vermelho50", "#F5C6C0", "Vermelho600")
-            : ("Ambar50", "#F0DCA8", "Ambar700");
+            ? ("Vermelho50", "BordaAvisoVermelho", "Vermelho600")
+            : ("Ambar50", "BordaAvisoAmbar", "Ambar700");
         Aviso.Background = (Brush)FindResource(fundo);
-        Aviso.BorderBrush = (Brush)new BrushConverter().ConvertFromString(borda)!;
+        Aviso.BorderBrush = (Brush)FindResource(borda);
         AvisoTexto.Foreground = AvisoIcone.Foreground = (Brush)FindResource(cor);
         AvisoTexto.Text = texto;
         Aviso.Visibility = Visibility.Visible;
