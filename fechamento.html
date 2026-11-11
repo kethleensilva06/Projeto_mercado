@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fechamento do dia · Mercado</title>
+  <link rel="stylesheet" href="css/app.css?v=3">
+  <link rel="stylesheet" href="css/componentes.css?v=3">
+  <link rel="stylesheet" href="css/painel.css?v=3">
+  <link rel="stylesheet" href="css/fechamento.css?v=1">
+  <link rel="stylesheet" href="css/tema.css?v=3">
+  <script src="js/auth.js?v=3"></script>
+  <script src="js/dados.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
+  <script src="js/regras.js?v=3"></script>
+</head>
+<body>
+  <header class="mobile-bar">
+    <a class="brand" href="painel.html">
+      <span class="brand-mark" aria-hidden="true">M</span><span class="brand-name">Mercado</span>
+    </a>
+    <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </header>
+  <div class="backdrop" id="backdrop" hidden></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1>Fechamento do dia</h1>
+          <p id="data-dia"></p>
+        </div>
+        <span class="live" title="A tela se atualiza sozinha a cada nova venda">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="situacao">Atualizando…</span>
+        </span>
+      </div>
+
+      <p class="aviso aviso-ambar" id="aviso-caixa" hidden></p>
+
+      <section class="kpis" aria-label="Indicadores do dia">
+        <article class="kpi">
+          <div class="kpi-top"><span class="kpi-label">Vendido hoje</span></div>
+          <strong class="kpi-value" id="kpi-total">—</strong>
+          <span class="kpi-sub">Vendas pagas, sem as canceladas</span>
+        </article>
+        <article class="kpi">
+          <div class="kpi-top"><span class="kpi-label">Vendas</span></div>
+          <strong class="kpi-value" id="kpi-vendas">—</strong>
+          <span class="kpi-sub" id="kpi-vendas-sub"></span>
+        </article>
+        <article class="kpi">
+          <div class="kpi-top"><span class="kpi-label">Ticket médio</span></div>
+          <strong class="kpi-value" id="kpi-ticket">—</strong>
+          <span class="kpi-sub">Valor médio por venda</span>
+        </article>
+        <article class="kpi">
+          <div class="kpi-top"><span class="kpi-label">Cancelamentos</span></div>
+          <strong class="kpi-value" id="kpi-cancel">—</strong>
+          <span class="kpi-sub">Vendas canceladas hoje</span>
+        </article>
+      </section>
+
+      <div class="grid-2">
+        <section class="card">
+          <h2 class="card-title">Formas de pagamento</h2>
+          <ul class="fc-lista" id="formas"></ul>
+        </section>
+        <section class="card">
+          <h2 class="card-title">Mais vendidos</h2>
+          <ul class="fc-lista" id="mais-vendidos"></ul>
+        </section>
+      </div>
+
+      <div class="grid-2">
+        <section class="card">
+          <h2 class="card-title">Vendas por hora</h2>
+          <ul class="fc-lista" id="por-hora"></ul>
+        </section>
+        <section class="card fc-fechar">
+          <h2 class="card-title">Fechar o dia</h2>
+          <p id="fechar-texto"></p>
+          <button type="button" class="btn btn-primary" id="btn-fechar">Fechar o dia</button>
+        </section>
+      </div>
+
+      <section class="card">
+        <h2 class="card-title">Cancelamentos</h2>
+        <ul class="fc-lista" id="cancelamentos"></ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/fechamento.js?v=1"></script>
+</body>
+</html>

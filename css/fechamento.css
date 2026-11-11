@@ -1,0 +1,17 @@
+/* Fechamento do dia: listas simples dentro dos cartões do painel */
+.fc-lista { list-style: none; margin: 0; padding: 0; }
+.fc-lista li {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--line);
+}
+.fc-lista li:last-child { border-bottom: 0; }
+.fc-lista li span { min-width: 0; overflow-wrap: anywhere; }
+.fc-lista li strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fc-lista li.empty { color: var(--muted, #6b7280); justify-content: flex-start; }
+
+.fc-fechar p { margin: 0 0 14px; color: var(--muted, #6b7280); }
+.fc-fechar .btn { width: 100%; }
+
+@media (max-width: 720px) {
+  .fc-lista li { flex-direction: column; gap: 2px; }
+}

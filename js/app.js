@@ -19,7 +19,7 @@ const App = (() => {
     { id: "estoque", nome: "Estoque", href: "estoque.html", pronto: true, perfis: ["gerente"] },
     { id: "fornecedores", nome: "Fornecedores", href: "fornecedores.html", pronto: true, perfis: ["gerente"] },
     { id: "caixa", nome: "Caixa", href: "caixa.html", pronto: true, perfis: ["gerente", "operador"] },
-    { id: "fechamento", nome: "Fechamento do dia", href: "fechamento.html", pronto: false, perfis: ["gerente", "operador"] },
+    { id: "fechamento", nome: "Fechamento do dia", href: "fechamento.html", pronto: true, perfis: ["gerente"] },
   ];
 
   const svg = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
