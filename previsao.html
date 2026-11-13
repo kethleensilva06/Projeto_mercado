@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="css/app.css?v=3">
   <link rel="stylesheet" href="css/componentes.css?v=3">
   <link rel="stylesheet" href="css/painel.css?v=3">
-  <link rel="stylesheet" href="css/fechamento.css?v=1">
-  <link rel="stylesheet" href="css/previsao.css?v=1">
+  <link rel="stylesheet" href="css/previsao.css?v=2">
   <link rel="stylesheet" href="css/tema.css?v=3">
   <script src="js/auth.js?v=3"></script>
   <script src="js/dados.js?v=3"></script>
@@ -27,66 +26,51 @@
   <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
 
+    <!-- Previsão de compras (semana 7, só o gerente): igual à tela do programa para Windows (PrevisaoView).
+         Os números vêm de PrevisaoSimulada (js/previsao-simulada.js), que faz o papel das funções do banco. -->
     <main class="main">
       <div class="page-head">
         <div>
           <h1>Previsão de compras</h1>
-          <p>Quanto vender nos próximos dias e quanto pedir para não faltar</p>
+          <p id="subtitulo">Carregando…</p>
         </div>
+        <button type="button" class="btn btn-ghost" id="btn-atualizar" title="Calcular a previsão de novo">Atualizar</button>
       </div>
 
       <p class="aviso aviso-azul">
-        Esta tela usa um histórico simulado de 28 dias e um calendário de exemplo, porque o site ainda não tem
-        back-end. No programa para Windows, a previsão usa as vendas reais do banco.
+        No site, as vendas dos últimos anos são simuladas (o site ainda não tem back-end). Estoque, fornecedores e
+        pedidos são os do sistema. No programa para Windows, a previsão usa as vendas reais do banco.
       </p>
 
-      <section class="kpis" aria-label="Resumo da previsão">
-        <article class="kpi">
-          <div class="kpi-top"><span class="kpi-label">Para pedir</span></div>
-          <strong class="kpi-value" id="kpi-pedir">—</strong>
-          <span class="kpi-sub">Produtos que vão acabar antes da próxima entrega</span>
-        </article>
-        <article class="kpi">
-          <div class="kpi-top"><span class="kpi-label">Venda prevista (7 dias)</span></div>
-          <strong class="kpi-value" id="kpi-7dias">—</strong>
-          <span class="kpi-sub">Valor estimado a partir do histórico</span>
-        </article>
-        <article class="kpi">
-          <div class="kpi-top"><span class="kpi-label">Eventos nos próximos 30 dias</span></div>
-          <strong class="kpi-value" id="kpi-eventos">—</strong>
-          <span class="kpi-sub" id="kpi-eventos-sub"></span>
-        </article>
-      </section>
+      <div class="aviso aviso-erro pv-erro" id="aviso-erro" role="alert" hidden>
+        <span id="aviso-erro-texto"></span>
+        <button type="button" class="link-simples" id="btn-tentar">Tentar de novo</button>
+      </div>
 
-      <div class="grid-2">
-        <section class="card pv-tabela-caixa">
-          <h2 class="card-title">Produtos</h2>
-          <div class="pv-rolagem">
-            <table class="pv-tabela">
-              <thead>
-                <tr>
-                  <th scope="col">Produto</th>
-                  <th scope="col">Estoque</th>
-                  <th scope="col">Vende/dia</th>
-                  <th scope="col">Próx. 7 dias</th>
-                  <th scope="col">Pedir</th>
-                  <th scope="col">Situação</th>
-                </tr>
-              </thead>
-              <tbody id="produtos"></tbody>
-            </table>
+      <section class="kpis" id="kpis" aria-label="Indicadores da previsão"></section>
+
+      <div class="chips pv-abas" role="tablist" aria-label="Partes da previsão" id="abas">
+        <button type="button" class="chip active" role="tab" id="aba-pedido" data-aba="pedido" aria-selected="true" aria-controls="conteudo">Pedido sugerido</button>
+        <button type="button" class="chip" role="tab" id="aba-produto" data-aba="produto" aria-selected="false" aria-controls="conteudo" tabindex="-1">Produto</button>
+        <button type="button" class="chip" role="tab" id="aba-teste" data-aba="teste" aria-selected="false" aria-controls="conteudo" tabindex="-1">Teste da previsão</button>
+        <button type="button" class="chip" role="tab" id="aba-alertas" data-aba="alertas" aria-selected="false" aria-controls="conteudo" tabindex="-1">Alertas</button>
+      </div>
+
+      <div id="conteudo" class="pv-conteudo" role="tabpanel" aria-labelledby="aba-pedido" tabindex="0">
+        <!-- Aba Produto: a busca fica fixa, o resto é desenhado pelo código -->
+        <div class="pv-busca" id="busca-produto" hidden>
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" id="busca" maxlength="80" placeholder="Digite o nome do produto" aria-label="Buscar produto" autocomplete="off">
           </div>
-        </section>
-
-        <section class="card">
-          <h2 class="card-title">Próximos eventos</h2>
-          <ul class="fc-lista" id="eventos"></ul>
-          <p class="pv-nota">O fator mostra quanto o movimento muda naquele dia (ex.: +40% = 40% a mais que o normal).</p>
-        </section>
+          <div class="pv-resultados" id="resultados" aria-live="polite"></div>
+        </div>
+        <div id="painel"></div>
       </div>
     </main>
   </div>
 
-  <script src="js/previsao.js?v=1"></script>
+  <script src="js/previsao-simulada.js?v=1"></script>
+  <script src="js/previsao.js?v=2"></script>
 </body>
 </html>

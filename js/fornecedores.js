@@ -406,13 +406,17 @@
 
   const fornecedorEscolhido = d => d.fornecedores.find(x => x.id === Number(cp.fornecedor.value)) || null;
 
-  function abrirPedido(fornecedorId = null, produtoIds = []) {
+  // quantidades: { produtoId: qtd } (pedido sugerido da Previsão de compras); sem ela, a sugestão do estoque
+  function abrirPedido(fornecedorId = null, produtoIds = [], quantidades = null) {
     const d = Dados.ler();
     if (!R.ativos(d).length) return App.toast("Cadastre um fornecedor antes de criar pedidos.");
     cp.fornecedor.innerHTML = '<option value="">Selecione o fornecedor</option>' +
       R.ativos(d).map(f => `<option value="${f.id}">${esc(f.nome)}</option>`).join("");
     cp.fornecedor.value = fornecedorId || "";
-    itens = produtoIds.map(id => ({ produtoId: id, qtd: R.paraCampo(R.qtdSugerida(d.produtos.find(p => p.id === id))) }));
+    itens = produtoIds.filter(id => d.produtos.some(p => p.id === id)).map(id => ({
+      produtoId: id,
+      qtd: R.paraCampo(quantidades && quantidades[id] > 0 ? quantidades[id] : R.qtdSugerida(d.produtos.find(p => p.id === id))),
+    }));
     cp.busca.value = "";
     cp.observacao.value = "";
     cp.previsao.value = "";
@@ -707,6 +711,16 @@
   const hash = location.hash;
   if (hash) history.replaceState(null, "", location.pathname);
   if (hash === "#novo-pedido") abrirPedido();
+  if (hash === "#pedido-sugerido") {
+    // Vindo do "Revisar e criar pedido" da Previsão de compras: abre o pedido já preenchido
+    let sugerido = null;
+    try { sugerido = JSON.parse(sessionStorage.getItem("mercado.pedidoSugerido")); sessionStorage.removeItem("mercado.pedidoSugerido"); } catch (_) {}
+    if (sugerido && Array.isArray(sugerido.itens)) {
+      const quantidades = {};
+      sugerido.itens.forEach(i => { quantidades[i.produtoId] = i.qtd; });
+      abrirPedido(sugerido.fornecedorId, sugerido.itens.map(i => i.produtoId), quantidades);
+    }
+  }
   const entrega = /^#entrega-(\d+)$/.exec(hash);
   if (entrega) {
     const p = Dados.ler().pedidos.find(x => x.id === Number(entrega[1]));
