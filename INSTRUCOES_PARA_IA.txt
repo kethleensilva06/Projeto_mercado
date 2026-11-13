@@ -83,7 +83,9 @@ supabase/functions/        Edge Functions (Deno/TypeScript): enviar-email (resum
                            Senha do e-mail só nos Secrets do Supabase. Publicar com --no-verify-jwt (conferem o login
                            por dentro; o agendamento usa o cabeçalho x-segredo).
 app-celular/               App de celular da gerência (HTML/CSS/JS, PWA instalável; vira .apk no PWABuilder). Usa só a
-                           chave pública (config.js) e as funções do 009. Só leitura.
+                           chave pública (config.js) e as funções do 009. Aba Pedir (cria pedido com criar_pedido): modo
+                           "Pela previsão" usa pedido_sugerido do 019 (volta para "Abaixo do mínimo" sem ele); aba Avisos
+                           mostra também previsao_alertas.
 src/MercadinhoSeuZe/
   App.xaml                 Cores, ícones (Geometry) e estilos de botões/campos/listas de escolha, indicadores
                            quadrados (Kpi), chips e cabeçalho de tabela. Reutilize, não duplique.
