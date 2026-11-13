@@ -24,6 +24,7 @@ public partial class AreaInternaView : UserControl
         new("caixa", "Caixa", "IconeCaixaRegistradora", true, [Perfil.Gerente, Perfil.Operador]),
         new("funcionarios", "Funcionários", "IconeEquipe", true, [Perfil.Gerente]),
         new("fechamento", "Fechamento do dia", "IconeFechamento", true, [Perfil.Gerente]),
+        new("previsao", "Previsão de compras", "IconeTendencia", true, [Perfil.Gerente]),
     ];
 
     private readonly MainWindow _janela;
@@ -76,6 +77,7 @@ public partial class AreaInternaView : UserControl
             "fornecedores" => new FornecedoresView(this, Fornecedores(), Estoque(), Mensagens()),
             "funcionarios" => new FuncionariosView(this, Funcionarios()),
             "fechamento" => new FechamentoView(this, Fechamento(), Caixa()),
+            "previsao" => new PrevisaoView(this, Previsao()),
             _ => new CaixaView(this, Caixa(), Estoque()),
         };
         Pagina.Content = tela;
@@ -93,6 +95,7 @@ public partial class AreaInternaView : UserControl
     private FuncionarioService? _funcionarios;
     private FechamentoService? _fechamento;
     private MensagensService? _mensagens;
+    private PrevisaoService? _previsao;
 
     private EstoqueService? Estoque() => _api is null ? null : _estoque ??= new EstoqueService(_api, _sessao);
 
@@ -105,6 +108,8 @@ public partial class AreaInternaView : UserControl
     private FechamentoService? Fechamento() => _api is null ? null : _fechamento ??= new FechamentoService(_api, _sessao);
 
     public MensagensService? Mensagens() => _api is null ? null : _mensagens ??= new MensagensService(_api, _sessao);
+
+    private PrevisaoService? Previsao() => _api is null ? null : _previsao ??= new PrevisaoService(_api, _sessao);
 
     private void MeuPerfil_Click(object sender, RoutedEventArgs e)
     {
