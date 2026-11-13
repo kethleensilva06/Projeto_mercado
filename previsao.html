@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Previsão de compras · Mercado</title>
+  <link rel="stylesheet" href="css/app.css?v=3">
+  <link rel="stylesheet" href="css/componentes.css?v=3">
+  <link rel="stylesheet" href="css/painel.css?v=3">
+  <link rel="stylesheet" href="css/fechamento.css?v=1">
+  <link rel="stylesheet" href="css/previsao.css?v=1">
+  <link rel="stylesheet" href="css/tema.css?v=3">
+  <script src="js/auth.js?v=3"></script>
+  <script src="js/dados.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
+  <script src="js/regras.js?v=3"></script>
+</head>
+<body>
+  <header class="mobile-bar">
+    <a class="brand" href="painel.html">
+      <span class="brand-mark" aria-hidden="true">M</span><span class="brand-name">Mercado</span>
+    </a>
+    <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </header>
+  <div class="backdrop" id="backdrop" hidden></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1>Previsão de compras</h1>
+          <p>Quanto vender nos próximos dias e quanto pedir para não faltar</p>
+        </div>
+      </div>
+
+      <p class="aviso aviso-azul">
+        Esta tela usa um histórico simulado de 28 dias e um calendário de exemplo, porque o site ainda não tem
+        back-end. No programa para Windows, a previsão usa as vendas reais do banco.
+      </p>
+
+      <section class="kpis" aria-label="Resumo da previsão">
+        <article class="kpi">
+          <div class="kpi-top"><span class="kpi-label">Para pedir</span></div>
+          <strong class="kpi-value" id="kpi-pedir">—</strong>
+          <span class="kpi-sub">Produtos que vão acabar antes da próxima entrega</span>
+        </article>
+        <article class="kpi">
+          <div class="kpi-top"><span class="kpi-label">Venda prevista (7 dias)</span></div>
+          <strong class="kpi-value" id="kpi-7dias">—</strong>
+          <span class="kpi-sub">Valor estimado a partir do histórico</span>
+        </article>
+        <article class="kpi">
+          <div class="kpi-top"><span class="kpi-label">Eventos nos próximos 30 dias</span></div>
+          <strong class="kpi-value" id="kpi-eventos">—</strong>
+          <span class="kpi-sub" id="kpi-eventos-sub"></span>
+        </article>
+      </section>
+
+      <div class="grid-2">
+        <section class="card pv-tabela-caixa">
+          <h2 class="card-title">Produtos</h2>
+          <div class="pv-rolagem">
+            <table class="pv-tabela">
+              <thead>
+                <tr>
+                  <th scope="col">Produto</th>
+                  <th scope="col">Estoque</th>
+                  <th scope="col">Vende/dia</th>
+                  <th scope="col">Próx. 7 dias</th>
+                  <th scope="col">Pedir</th>
+                  <th scope="col">Situação</th>
+                </tr>
+              </thead>
+              <tbody id="produtos"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Próximos eventos</h2>
+          <ul class="fc-lista" id="eventos"></ul>
+          <p class="pv-nota">O fator mostra quanto o movimento muda naquele dia (ex.: +40% = 40% a mais que o normal).</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/previsao.js?v=1"></script>
+</body>
+</html>

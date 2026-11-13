@@ -1,0 +1,20 @@
+/* Previsão de compras: tabela de produtos e situação colorida */
+.pv-rolagem { overflow-x: auto; }
+.pv-tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.pv-tabela th {
+  text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px;
+  color: var(--muted, #6b7280); padding: 8px 10px; border-bottom: 1px solid var(--line);
+}
+.pv-tabela td { padding: 10px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pv-tabela td:first-child { white-space: normal; min-width: 130px; }
+.pv-tabela tbody tr:last-child td { border-bottom: 0; }
+
+.pv-situacao {
+  display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  border: 1px solid transparent;
+}
+.pv-pedir { background: #FDECEA; color: #8A1F12; border-color: #F4B9B0; }
+.pv-atencao { background: #FFF6E0; color: #7A4B00; border-color: #F2D28C; }
+.pv-ok { background: #EAF5EE; color: #1E5B38; border-color: #B7DCC4; }
+
+.pv-nota { margin: 12px 0 0; font-size: 13px; color: var(--muted, #6b7280); }

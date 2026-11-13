@@ -10,6 +10,7 @@ const App = (() => {
     fornecedores: '<path d="M1 6h13v10H1zM14 10h4l3 3v3h-7z"/><circle cx="5" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
     caixa: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h4M14 13h3M7 16h4M14 16h3"/>',
     fechamento: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+    previsao: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/><path d="M3 21h18"/>',
     sair: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>',
   };
 
@@ -20,6 +21,7 @@ const App = (() => {
     { id: "fornecedores", nome: "Fornecedores", href: "fornecedores.html", pronto: true, perfis: ["gerente"] },
     { id: "caixa", nome: "Caixa", href: "caixa.html", pronto: true, perfis: ["gerente", "operador"] },
     { id: "fechamento", nome: "Fechamento do dia", href: "fechamento.html", pronto: true, perfis: ["gerente"] },
+    { id: "previsao", nome: "Previsão de compras", href: "previsao.html", pronto: true, perfis: ["gerente"] },
   ];
 
   const svg = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
