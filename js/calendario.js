@@ -29,12 +29,15 @@ const Fonte = {
 
   const $ = id => document.getElementById(id);
   const esc = App.esc;
-  const moeda = App.moeda;
-  const moeda0 = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  const moeda = v => App.venda(v);   // vendido e previsto respeitam o "Ocultar vendas"
+  const custo0 = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  const moeda0 = v => App.vendasOcultas() ? "R$ •••••" : custo0(v);
   // "R$ 38,4 mil" nos indicadores (o valor inteiro não cabe)
-  const moedaCurta = v => Math.abs(v) < 10000 ? moeda(v) : `R$ ${(v / 1000).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mil`;
+  const moedaCurta = v => App.vendasOcultas() ? "R$ •••••" : _moedaCurta(v);
+  const _moedaCurta = v => Math.abs(v) < 10000 ? moeda(v) : `R$ ${(v / 1000).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mil`;
   // Na grade do celular: "850" ou "1,2k"
-  const valorMini = v => v < 1000 ? String(Math.round(v)) : `${(v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}k`;
+  const valorMini = v => App.vendasOcultas() ? "•••" : _valorMini(v);
+  const _valorMini = v => v < 1000 ? String(Math.round(v)) : `${(v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}k`;
   const plural = (n, um, varios) => `${n.toLocaleString("pt-BR")} ${n === 1 ? um : varios}`;
   const capitalizar = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   const dataDia = iso => new Date(iso + "T12:00");
@@ -92,7 +95,7 @@ const Fonte = {
     sugeridos.forEach(s => {
       if (!s.itens.length || s.tem_pendente) return;
       por(s.data_pedido, s.fornecedor,
-        `${plural(s.itens.length, "produto", "produtos")}${s.total > 0 ? `, ≈ ${moeda0(s.total)}` : ""}: ` +
+        `${plural(s.itens.length, "produto", "produtos")}${s.total > 0 ? `, ≈ ${custo0(s.total)}` : ""}: ` +
         s.itens.slice(0, 4).map(i => i.nome).join(", ") + (s.itens.length > 4 ? "…" : ""), s);
     });
     (dados.datas || []).forEach(f => {
@@ -425,7 +428,7 @@ const Fonte = {
         : `<p class="cal-suave">Nada para pedir agora: o estoque e o que já foi pedido dão até a próxima entrega.</p>`;
       const quando = s.pedir_hoje ? "Pedir hoje" : `Pedir em ${ddmm(s.data_pedido)}`;
       return cartao(s.fornecedor, `<p class="cal-suave">${esc(quando)} · chega ${ddmm(s.chegada)} e precisa durar até ${ddmm(s.proxima_entrega)}` +
-        `${s.tem_pendente ? " · já tem pedido pendente" : ""}${s.total > 0 ? ` · ≈ ${moeda0(s.total)}` : ""}</p>${corpo}` +
+        `${s.tem_pendente ? " · já tem pedido pendente" : ""}${s.total > 0 ? ` · ≈ ${custo0(s.total)}` : ""}</p>${corpo}` +
         (s.itens.length ? `<div class="cal-acoes"><button type="button" class="btn btn-primary cal-montar" data-fornecedor="${s.fornecedor_id}">Montar pedido</button></div>` : ""));
     }).join("");
     $("previsao-completa").innerHTML = `<h3 class="cal-sub-titulo">Pedido sugerido</h3>${cartoes || '<p class="cal-suave">Nenhum fornecedor ativo.</p>'}
@@ -467,5 +470,7 @@ const Fonte = {
   }
 
   carregar();
+  App.interruptorOcultar();
+  App.aoOcultar(() => carregar());
   Dados.aoMudar(() => { PrevisaoSimulada.limpar(); carregar(); });
 })();

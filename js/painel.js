@@ -52,10 +52,10 @@
       .sort((a, b) => Number(Dados.pedidoAtrasado(b)) - Number(Dados.pedidoAtrasado(a)) || (a.previsao || "").localeCompare(b.previsao || ""));
 
     const valores = {
-      "kpi-vendas": App.moeda(total),
+      "kpi-vendas": App.venda(total),
       "kpi-estoque": plural(baixos.length + semEstoque.length, "produto", "produtos"),
       "kpi-pedidos": plural(pendentes.length, "pedido", "pedidos"),
-      "kpi-ticket": App.moeda(qtdVendas ? total / qtdVendas : 0),
+      "kpi-ticket": App.venda(qtdVendas ? total / qtdVendas : 0),
     };
     Object.entries(valores).forEach(([id, v]) => {
       const el = $(id);
@@ -129,6 +129,8 @@
   );
 
   cabecalho();
+  App.interruptorOcultar();
+  App.aoOcultar(render);
   render();
   Dados.aoMudar(render);            // nova venda ou alteração → atualiza na hora
   setInterval(() => { cabecalho(); render(); }, 30000);

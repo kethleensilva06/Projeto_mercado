@@ -101,8 +101,42 @@ const App = (() => {
   }
 
   const moeda = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  // "Ocultar vendas" (como no programa, Views/ValoresVenda.cs): troca os valores de venda por "R$ •••••" para quem estiver
+  // olhando a tela. A escolha fica guardada neste navegador e vale para todas as telas (e para as outras abas abertas).
+  const CHAVE_OCULTAR = "mercado.ocultarVendas";
+  const lerOcultar = () => { try { return localStorage.getItem(CHAVE_OCULTAR) === "1"; } catch (_) { return false; } };
+  let ocultas = lerOcultar();
+  const ouvintesOcultar = [];
+  const avisarOcultar = () => {
+    document.querySelectorAll("[data-ocultar-vendas]").forEach(c => { c.checked = ocultas; });
+    ouvintesOcultar.forEach(fn => fn(ocultas));
+  };
+  window.addEventListener("storage", e => { if (e.key === CHAVE_OCULTAR) { ocultas = lerOcultar(); avisarOcultar(); } });
+
+  const vendasOcultas = () => ocultas;
+  const venda = v => ocultas ? "R$ •••••" : moeda(v);
+  function definirOcultar(valor) {
+    ocultas = Boolean(valor);
+    try { localStorage.setItem(CHAVE_OCULTAR, ocultas ? "1" : "0"); } catch (_) {}
+    avisarOcultar();
+  }
+  /** Avisa a tela quando o interruptor muda (para mostrar os valores de novo). */
+  const aoOcultar = fn => ouvintesOcultar.push(fn);
+  /** Põe o interruptor "Ocultar vendas" no cabeçalho da tela (.page-head). */
+  function interruptorOcultar(alvo = document.querySelector(".page-head")) {
+    if (!alvo) return;
+    const rotulo = document.createElement("label");
+    rotulo.className = "interruptor";
+    rotulo.title = "Esconde os valores de venda da tela (vale para todas as telas deste navegador)";
+    rotulo.innerHTML = '<input type="checkbox" role="switch" data-ocultar-vendas><span class="interruptor-trilho" aria-hidden="true"></span><span>Ocultar vendas</span>';
+    const caixa = rotulo.querySelector("input");
+    caixa.checked = ocultas;
+    caixa.addEventListener("change", () => definirOcultar(caixa.checked));
+    alvo.appendChild(rotulo);
+  }
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const dataBR = iso => iso ? new Date(iso + "T12:00").toLocaleDateString("pt-BR") : "—";
 
-  return { iniciar, toast, emBreve, svg, moeda, esc, dataBR, MENU };
+  return { iniciar, toast, emBreve, svg, moeda, esc, dataBR, MENU, venda, vendasOcultas, aoOcultar, interruptorOcultar };
 })();

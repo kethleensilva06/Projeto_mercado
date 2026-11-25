@@ -9,6 +9,8 @@
 
   const $ = id => document.getElementById(id);
   const { esc, moeda } = App;
+  // "Ocultar vendas" é do gerente; o operador sempre vê os valores do próprio caixa
+  const vendaDia = v => sessao.perfil === "gerente" ? App.venda(v) : moeda(v);
   const R = Regras;
 
   let forma = null;
@@ -79,9 +81,9 @@
   function renderDia(d) {
     const validas = d.vendas.filter(v => !v.cancelada);
     const total = validas.reduce((s, v) => s + v.total, 0);
-    $("r-total").textContent = moeda(total);
+    $("r-total").textContent = vendaDia(total);
     $("r-qtd").textContent = validas.length;
-    $("r-ticket").textContent = moeda(validas.length ? total / validas.length : 0);
+    $("r-ticket").textContent = vendaDia(validas.length ? total / validas.length : 0);
 
     const lista = [...d.vendas].sort((a, b) => b.id - a.id);
     $("vendas").innerHTML = lista.length ? lista.map(v => `
@@ -91,7 +93,7 @@
           <small>${v.itens ? esc(v.itens.map(i => `${R.numero(i.qtd, i.unidade === "kg")} ${i.unidade === "kg" ? "kg" : "un."} ${i.nome}`).join(", ")) : ""}</small>
         </div>
         <span class="venda-forma">${R.FORMAS[v.forma] || esc(v.forma)}</span>
-        <strong class="venda-total">${moeda(v.total)}</strong>
+        <strong class="venda-total">${vendaDia(v.total)}</strong>
         ${v.cancelada ? `<span class="badge badge-danger" title="Cancelada por ${esc(v.canceladaPor || "")}">Cancelada</span>`
           : sessao.perfil === "gerente" && v.itens ? '<button type="button" class="link-btn" data-cancelar>Cancelar</button>' : ""}
       </li>`).join("") : '<li class="vazio">Nenhuma venda hoje.</li>';
@@ -357,6 +359,7 @@
     if (e.key === "F4") { e.preventDefault(); finalizar(); }
   });
 
+  if (sessao.perfil === "gerente") { App.interruptorOcultar(); App.aoOcultar(render); }
   render();
   if (!$("area-venda").hidden) $("busca").focus(); else $("troco-inicial").focus();
   Dados.aoMudar(render);

@@ -145,3 +145,12 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   .main { padding: 24px 16px 40px; }
   .page-head h1 { font-size: 24px; }
 }
+
+/* Interruptor "Ocultar vendas" (App.interruptorOcultar) */
+.interruptor { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--ink, inherit); user-select: none; }
+.interruptor input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.interruptor-trilho { position: relative; width: 40px; height: 22px; border-radius: 999px; background: #c9c4b8; transition: background .15s; flex: none; }
+.interruptor-trilho::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+.interruptor input:checked + .interruptor-trilho { background: var(--green, #1f7a4d); }
+.interruptor input:checked + .interruptor-trilho::after { transform: translateX(18px); }
+.interruptor input:focus-visible + .interruptor-trilho { outline: 3px solid var(--focus, #1f3354); outline-offset: 2px; }

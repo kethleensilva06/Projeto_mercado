@@ -4,7 +4,7 @@
 
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const moeda = App.moeda;
+  const moeda = v => App.venda(v);   // "Ocultar vendas" vale para toda a tela
   const CHAVE = dia => "mercado.fechamento." + dia;
 
   // Registro do dia fechado (fica neste navegador; o envio do resumo por e-mail é feito pelo programa para Windows)
@@ -97,6 +97,8 @@
     render();
   });
 
+  App.interruptorOcultar();
+  App.aoOcultar(render);
   render();
   Dados.aoMudar(render);
 })();
