@@ -492,7 +492,103 @@ const PrevisaoSimulada = (() => {
     return res;
   }
 
+  // ------------------------------------------------------------ calendario_mes(p_mes) (script 023, tela Calendário)
+  const r2 = x => Math.round(x * 100) / 100;
+  // Quantas vendas deram o valor do dia (o histórico simulado é por produto; aqui um ticket médio de exemplo)
+  const vendasDoDia = (d, valor) => valor > 0 ? Math.max(1, Math.round(valor / (34 + 12 * hash(d, 77)))) : 0;
+  // Vendido em R$ num dia do histórico simulado (dias antes de hoje)
+  const vendidoSimulado = (lista, d) => lista.reduce((s, a) => s + a.h.valor(d) * a.p.preco, 0);
+
+  function calendarioMes(mesISO) {
+    const d = Dados.ler();
+    const h0 = hoje();
+    const base = num((mesISO || iso(h0)).slice(0, 7) + "-01");
+    const ini = base;
+    const a0 = ano(ini), m0 = mes(ini);
+    const fim = data(m0 === 11 ? a0 + 1 : a0, m0 === 11 ? 1 : m0 + 2, 1) - 1;
+    const lista = d.produtos.map(analise);
+    const ate = h0 + DIAS_FRENTE - 1;
+
+    // Hoje: as vendas pagas de verdade (Dados); antes de hoje: o histórico simulado
+    const pagasHoje = d.vendas.filter(v => !v.cancelada);
+    let fechadoHoje = false;
+    try { fechadoHoje = !!localStorage.getItem("mercado.fechamento." + iso(h0)); } catch (_) {}
+
+    const dias = [];
+    for (let x = ini; x <= fim; x++) {
+      let vendido = null, vendas = null;
+      if (x < h0) { vendido = r2(vendidoSimulado(lista, x)); vendas = vendasDoDia(x, vendido); }
+      if (x === h0) { vendido = r2(pagasHoje.reduce((s, v) => s + v.total, 0)); vendas = pagasHoje.length; }
+      let previsto = null, minimo = null, maximo = null;
+      if (x >= h0 && x <= ate) {
+        let t = 0, var2 = 0;
+        lista.forEach(a => { const p = a.diaDe(x); t += p.previsto * a.p.preco; var2 += (p.desvio * a.p.preco) ** 2; });
+        previsto = r2(t); minimo = r2(Math.max(t - MARGEM * Math.sqrt(var2), 0)); maximo = r2(t + MARGEM * Math.sqrt(var2));
+      }
+      const ap = x - 364 < h0 ? vendidoSimulado(lista, x - 364) : 0;
+      const ev = evento(x);
+      dias.push({
+        dia: iso(x), vendido, vendas,
+        // Dias anteriores do histórico simulado contam como fechados; hoje, o que foi gravado na tela Fechamento do dia
+        fechado: x < h0 ? vendido > 0 : x === h0 ? fechadoHoje : false,
+        previsto, previsto_min: minimo, previsto_max: maximo,
+        ano_passado: ap > 0 ? r2(ap) : null,
+        evento: ev ? ev.nome : null, fechado_evento: !!(ev && ev.fator === 0),
+      });
+    }
+
+    const fornecedores = Regras.ativos(d).slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")).map(f => {
+      const de = diasEntrega(f);
+      const prazo = f.prazo ?? 3;
+      const ds = [];
+      for (let x = ini; x <= fim; x++) if ((!de && dow(x) === 1) || (de && de.includes(dow(x + prazo)))) ds.push(iso(x));
+      return { fornecedor_id: f.id, fornecedor: f.nome, prazo, dias: ds.length ? ds : null };
+    });
+
+    const datas = [];
+    for (let x = ini; x <= fim + 21; x++) {
+      const ev = evento(x);
+      if (!ev || ev.fator <= 1) continue;
+      const vendem = lista.map(a => {
+        const lift = a.modelo.lifts[ev.nome];
+        return lift === undefined ? null : { p: a.p, extra: lift * a.modelo.nivel };
+      }).filter(v => v && v.extra >= 1).sort((a, b) => b.extra - a.extra).slice(0, 5);
+      const prazo = vendem.length ? Math.max(...vendem.map(v => (d.fornecedores.find(f => f.id === v.p.fornecedorId)?.prazo) ?? v.p.prazo ?? 3)) : 3;
+      datas.push({ dia: iso(x), nome: ev.nome, fator: ev.fator, pedir_ate: iso(x - prazo - 1), produtos: vendem.length ? vendem.map(v => v.p.nome).join(", ") : null });
+    }
+
+    return { hoje: iso(h0), inicio: iso(ini), fim: iso(fim), previsao_ate: iso(ate), dias, fornecedores, datas };
+  }
+
+  // Resumo de um dia que já passou (o que a tela Fechamento do dia mostra), pelo histórico simulado
+  function diaPassado(diaISO) {
+    const d = Dados.ler();
+    const x = num(diaISO);
+    const lista = d.produtos.map(analise);
+    const produtos = lista.map(a => ({ nome: a.p.nome, unidade: Regras.porPeso(a.p) ? "kg" : "un", qtd: a.h.valor(x), valor: r2(a.h.valor(x) * a.p.preco) }))
+      .filter(p => p.qtd > 0).sort((a, b) => b.valor - a.valor);
+    const total = r2(vendidoSimulado(lista, x));   // mesma conta do calendarioMes (o valor do dia bate com a grade)
+    const semanaPassada = r2(vendidoSimulado(lista, x - 7));
+    return { dia: diaISO, total, vendas: vendasDoDia(x, total), semana_passada: semanaPassada, produtos };
+  }
+
+  // Análises de vendas: total por semana (12 semanas antes desta) e média por dia da semana (últimos 84 dias)
+  function analises() {
+    const d = Dados.ler();
+    const lista = d.produtos.map(analise);
+    const w0 = inicioSemana(hoje());
+    const semanas = [];
+    for (let s = w0 - 84; s < w0; s += 7) {
+      let t = 0;
+      for (let x = s; x < s + 7; x++) t += vendidoSimulado(lista, x);
+      semanas.push({ semana: iso(s), total: r2(t) });
+    }
+    const soma = Array(7).fill(0), n = Array(7).fill(0);
+    for (let x = hoje() - 84; x < hoje(); x++) { soma[dow(x)] += vendidoSimulado(lista, x); n[dow(x)]++; }
+    return { semanas, dia_semana: soma.map((s, i) => r2(n[i] ? s / n[i] : 0)) };
+  }
+
   function limpar() { cache.clear(); }
 
-  return { tela, pedidoSugerido, produto, alertas, limpar };
+  return { tela, pedidoSugerido, produto, alertas, limpar, calendarioMes, diaPassado, analises };
 })();

@@ -1,0 +1,147 @@
+/* Calendário (semana 8): mês em grade, dia escolhido e áreas recolhidas (igual à tela do programa para Windows) */
+.cal-erro { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+/* Mês: ‹ novembro de 2026 › Voltar para hoje */
+.cal-nav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 16px; }
+.cal-seta { width: 40px; height: 40px; padding: 0; font-size: 22px; line-height: 1; justify-content: center; }
+.cal-mes { margin: 0; min-width: 210px; text-align: center; font-size: 20px; }
+.cal-hoje { margin-left: 6px; }
+.cal-hoje[hidden] { display: none; }
+
+.cal-kpis { grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); }
+.cal-kpis .kpi-value, .cal-kpis-dia .kpi-value { font-size: 24px; white-space: nowrap; }
+.cal-kpi-ponto { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+.kpi .cal-kpi-ponto.icon-green { background: var(--green-700) !important; }
+.kpi .cal-kpi-ponto.icon-blue { background: var(--blue-600) !important; }
+.kpi .cal-kpi-ponto.icon-amber { background: var(--amber-700) !important; }
+
+/* Grade */
+.cal-cartao { padding: 18px 20px; margin-bottom: 24px; }
+.cal-semana, .cal-grade { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal-semana span { padding: 0 0 6px 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.cal-dia-btn {
+  display: flex; flex-direction: column; min-width: 0; min-height: 88px; padding: 4px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
+  font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+}
+.cal-dia-btn.passado, .cal-dia-btn.hoje { background: var(--card, #fff); }
+.cal-dia-btn:hover { border-color: var(--muted); }
+.cal-dia-btn:focus-visible { outline: 3px solid var(--green-100); outline-offset: 1px; }
+.cal-dia-btn.escolhido { background: var(--green-50); border: 2px solid var(--green-700); padding: 3px; }
+.cal-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
+.cal-num { padding: 0 6px 1px; border-radius: 4px; font-size: 15px; font-weight: 600; color: var(--muted); }
+.cal-dia-btn.passado .cal-num { color: var(--ink); }
+.cal-dia-btn.hoje .cal-num { background: var(--green-100); color: var(--ink); font-weight: 800; }
+.cal-sinais { display: flex; align-items: center; gap: 4px; flex: none; }
+.cal-check { color: var(--green-700); font-weight: 800; font-size: 13px; }
+.cal-evento {
+  margin: 4px 2px 0 6px; font-size: 11.5px; font-weight: 600; color: var(--amber-700);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cal-baixo { margin: auto 6px 0; padding-top: 4px; min-width: 0; }
+.cal-valor { display: block; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cal-prev { color: var(--blue-600); font-weight: 400; }
+.cal-mini { display: none; }
+.cal-barra { display: block; height: 4px; margin-top: 4px; border-radius: 2px; background: var(--green-100); }
+.cal-barra.prev { background: var(--blue-50); }
+
+/* Caminhão: âmbar = dia de compra; cinza = pedido de rotina */
+.cal-caminhao {
+  display: inline-block; width: 22px; height: 22px; flex: none; border-radius: 50%;
+  border: 1px solid var(--line); background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: 13px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23655d50' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M1 6h13v10H1zM14 10h4l3 3v3h-7z'/%3E%3Ccircle cx='5' cy='18' r='2'/%3E%3Ccircle cx='17' cy='18' r='2'/%3E%3C/svg%3E");
+}
+.cal-caminhao.compra {
+  border: 1.2px solid var(--amber-700); background-color: var(--amber-50);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a4d00' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M1 6h13v10H1zM14 10h4l3 3v3h-7z'/%3E%3Ccircle cx='5' cy='18' r='2'/%3E%3Ccircle cx='17' cy='18' r='2'/%3E%3C/svg%3E");
+}
+
+.cal-legenda { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-top: 14px; font-size: 13px; color: var(--muted); }
+.cal-legenda > span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-legenda strong { color: var(--ink); font-size: 12px; }
+
+/* Dia escolhido */
+.cal-titulo-dia { margin: 0 0 4px; font-size: 20px; }
+.cal-sub-dia { margin: 0 0 16px; font-size: 14px; color: var(--muted); }
+.cal-detalhe { margin-bottom: 16px; min-width: 0; }
+.cal-kpis-dia { margin-bottom: 16px; }
+.cal-previsto { margin: 0 0 4px; font-size: 28px; font-weight: 800; color: var(--blue-600); }
+.cal-suave { margin: 2px 0; font-size: 14px; color: var(--muted); }
+.cal-nota { margin: 4px 0 16px; font-size: 13.5px; color: var(--muted); }
+.cal-acoes { display: flex; align-items: center; gap: 12px 18px; flex-wrap: wrap; margin-top: 12px; }
+.cal-detalhe.fc-fechar .btn { width: auto; }
+
+.cal-compras { list-style: none; margin: 0; padding: 0; }
+.cal-compras li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.cal-compras li:last-child { border-bottom: 0; }
+.cal-compras li > div { flex: 1; min-width: 0; }
+.cal-compras strong { display: block; font-size: 14.5px; overflow-wrap: anywhere; }
+.cal-compras p { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); overflow-wrap: anywhere; }
+.cal-compras .cal-caminhao { margin-top: 2px; }
+.cal-compras .btn { flex: none; }
+
+/* Áreas recolhidas */
+.cal-linha { border: 0; border-top: 1px solid var(--line); margin: 28px 0 8px; }
+.cal-recolhida { margin: 4px 0; }
+.cal-recolhida summary {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 6px 10px 30px; position: relative;
+  cursor: pointer; list-style: none; border-radius: 6px;
+}
+.cal-recolhida summary::-webkit-details-marker { display: none; }
+.cal-recolhida summary::before {
+  content: "›"; position: absolute; left: 8px; top: 9px; font-size: 20px; line-height: 1; transition: transform .15s;
+}
+.cal-recolhida[open] summary::before { transform: rotate(90deg); }
+.cal-recolhida summary:hover { background: var(--green-50); }
+.cal-recolhida summary:focus-visible { outline: 3px solid var(--green-100); outline-offset: 2px; }
+.cal-recolhida summary strong { font-size: 16px; }
+.cal-recolhida summary span { font-size: 13px; color: var(--muted); }
+.cal-recolhida-corpo { padding: 16px 0 8px; min-width: 0; }
+.cal-sub-titulo { margin: 0 0 12px; font-size: 17px; }
+
+.cal-barras { list-style: none; margin: 0; padding: 0; }
+.cal-barras li { display: grid; grid-template-columns: 130px 1fr auto; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; }
+.cal-barras-trilho { height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; }
+.cal-barras-trilho span { display: block; height: 100%; background: var(--green-600); border-radius: 4px; }
+.cal-barras strong { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.cal-tabela-caixa { overflow-x: auto; }
+.cal-tabela { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+.cal-tabela th { padding: 6px 0 6px 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); text-align: left; border-bottom: 2px solid var(--ink); }
+.cal-tabela td { padding: 8px 0 8px 8px; border-bottom: 1px dashed var(--line); }
+.cal-tabela th:first-child, .cal-tabela td:first-child { padding-left: 0; overflow-wrap: anywhere; }
+.cal-tabela .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cal-ev { display: block; font-size: 12px; color: var(--amber-700); }
+
+/* Tela média: menos texto em cada dia */
+@media (max-width: 1100px) {
+  .cal-dia-btn { min-height: 76px; }
+  .cal-valor { font-size: 12px; }
+}
+
+/* Celular: grade compacta (número, sinais e valor curto) */
+@media (max-width: 640px) {
+  .cal-cartao { padding: 12px 8px; }
+  .cal-semana, .cal-grade { gap: 3px; }
+  .cal-semana span { padding: 0 0 4px; text-align: center; font-size: 11.5px; }
+  .cal-dia-btn { min-height: 58px; padding: 2px; border-radius: 5px; }
+  .cal-dia-btn.escolhido { padding: 1px; }
+  .cal-topo { flex-direction: column; align-items: center; gap: 1px; }
+  .cal-num { font-size: 13px; padding: 0 4px; }
+  .cal-sinais { gap: 2px; }
+  .cal-caminhao { width: 15px; height: 15px; background-size: 9px; }
+  .cal-check { font-size: 11px; }
+  .cal-evento { display: none; }
+  .cal-dia-btn.com-evento .cal-num { box-shadow: inset 0 -2px 0 var(--amber-700); }
+  .cal-baixo { margin: auto 0 0; text-align: center; }
+  .cal-valor { font-size: 10.5px; }
+  .cal-cheio { display: none; }
+  .cal-mini { display: inline; }
+  .cal-barra { display: none; }
+  .cal-legenda { gap: 4px 14px; font-size: 12.5px; }
+  .cal-mes { min-width: 0; flex: 1; font-size: 18px; }
+  .cal-compras li { flex-wrap: wrap; }
+  .cal-compras .btn { width: 100%; }
+  .cal-barras li { grid-template-columns: 96px 1fr; }
+  .cal-barras strong { grid-column: 2; justify-self: end; }
+}

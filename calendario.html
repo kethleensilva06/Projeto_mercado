@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calendário · Mercado</title>
+  <link rel="stylesheet" href="css/app.css?v=3">
+  <link rel="stylesheet" href="css/componentes.css?v=3">
+  <link rel="stylesheet" href="css/painel.css?v=3">
+  <link rel="stylesheet" href="css/fechamento.css?v=1">
+  <link rel="stylesheet" href="css/calendario.css?v=1">
+  <link rel="stylesheet" href="css/tema.css?v=3">
+  <script src="js/auth.js?v=3"></script>
+  <script src="js/dados.js?v=3"></script>
+  <script src="js/app.js?v=4"></script>
+  <script src="js/regras.js?v=3"></script>
+</head>
+<body>
+  <header class="mobile-bar">
+    <a class="brand" href="painel.html">
+      <span class="brand-mark" aria-hidden="true">M</span><span class="brand-name">Mercado</span>
+    </a>
+    <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </header>
+  <div class="backdrop" id="backdrop" hidden></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <!-- Calendário (semana 8, só o gerente): igual à tela do programa para Windows (CalendarioView).
+         Junta a Previsão de compras e o Fechamento do dia. Os números vêm do objeto Fonte (js/calendario.js),
+         que no site usa PrevisaoSimulada e Dados no lugar da função calendario_mes do banco (script 023). -->
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1>Calendário</h1>
+          <p id="subtitulo">Carregando…</p>
+        </div>
+      </div>
+
+      <p class="aviso aviso-azul">
+        No site, as vendas dos dias anteriores e a previsão são simuladas (o site ainda não tem back-end). As vendas de hoje,
+        o estoque, os fornecedores e os pedidos são os do sistema. No programa para Windows, os números vêm do banco.
+      </p>
+
+      <div class="aviso aviso-erro cal-erro" id="aviso-erro" role="alert" hidden>
+        <span id="aviso-erro-texto"></span>
+        <button type="button" class="link-simples" id="btn-tentar">Tentar de novo</button>
+      </div>
+
+      <div class="cal-nav">
+        <button type="button" class="btn btn-ghost cal-seta" id="btn-anterior" aria-label="Mês anterior" title="Mês anterior">‹</button>
+        <h2 class="cal-mes" id="nome-mes" aria-live="polite"></h2>
+        <button type="button" class="btn btn-ghost cal-seta" id="btn-proximo" aria-label="Próximo mês" title="Próximo mês">›</button>
+        <button type="button" class="link-simples cal-hoje" id="btn-hoje" hidden>Voltar para hoje</button>
+      </div>
+
+      <section class="kpis cal-kpis" id="kpis" aria-label="Indicadores do mês"></section>
+
+      <section class="card cal-cartao" aria-label="Dias do mês">
+        <div class="cal-semana" aria-hidden="true">
+          <span>dom</span><span>seg</span><span>ter</span><span>qua</span><span>qui</span><span>sex</span><span>sáb</span>
+        </div>
+        <div class="cal-grade" id="grade"></div>
+        <div class="cal-legenda" id="legenda">
+          <span><span class="cal-caminhao compra" aria-hidden="true"></span>dia de compra (produtos para pedir)</span>
+          <span><span class="cal-caminhao" aria-hidden="true"></span>dia de pedido de rotina de algum fornecedor</span>
+          <span><strong>R$</strong> vendido</span>
+          <span><span class="cal-prev">≈ R$</span> previsto</span>
+          <span><span class="cal-check" aria-hidden="true">✓</span> dia fechado</span>
+        </div>
+      </section>
+
+      <section class="cal-dia" id="dia" aria-live="polite">
+        <h2 class="cal-titulo-dia" id="titulo-dia"></h2>
+        <p class="cal-sub-dia" id="sub-dia"></p>
+        <div id="detalhe-dia"></div>
+      </section>
+
+      <hr class="cal-linha">
+
+      <details class="cal-recolhida" id="exp-analises">
+        <summary>
+          <strong>Análises de vendas</strong>
+          <span>Vendas por semana e média por dia da semana</span>
+        </summary>
+        <div class="cal-recolhida-corpo" id="analises"></div>
+      </details>
+
+      <details class="cal-recolhida" id="exp-previsao">
+        <summary>
+          <strong>Dados completos da previsão</strong>
+          <span>Pedido sugerido de cada fornecedor e alertas</span>
+        </summary>
+        <div class="cal-recolhida-corpo" id="previsao-completa"></div>
+      </details>
+    </main>
+  </div>
+
+  <script src="js/previsao-simulada.js?v=2"></script>
+  <script src="js/calendario.js?v=1"></script>
+</body>
+</html>
